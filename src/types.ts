@@ -1,5 +1,6 @@
 export type Language = 'en' | 'ar' | 'ru';
 export type Theme = 'light' | 'dark';
+export type Priority = 'high' | 'medium' | 'low';
 
 export interface UserProfile {
   uid?: string;
@@ -26,6 +27,7 @@ export interface Task {
   dueType: TaskDueType;
   dueDate: string | null; // ISO Date String YYYY-MM-DD
   status: 'pending' | 'completed' | 'delayed';
+  priority?: Priority;
   createdAt: string;
   completedAt?: string;
 }

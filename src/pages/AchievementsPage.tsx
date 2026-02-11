@@ -1,0 +1,139 @@
+import { BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, Cell, PieChart as RePieChart, Pie } from 'recharts';
+import { useApp, calculateStreak } from '../context/AppContext';
+import { Flame, Trophy, Target } from 'lucide-react';
+
+const AchievementsPage = () => {
+    const { tasks, subjects, translate } = useApp();
+
+    const totalCompleted = tasks.filter(t => t.status === 'completed').length;
+    const todayStr = new Date().toISOString().split('T')[0];
+    const completedToday = tasks.filter(t => t.status === 'completed' && t.completedAt?.startsWith(todayStr)).length;
+    const streak = calculateStreak(tasks);
+
+    const subjectStats = subjects.map(sub => ({
+        name: sub.name,
+        count: tasks.filter(t => t.subjectId === sub.id && t.status === 'completed').length,
+        total: tasks.filter(t => t.subjectId === sub.id).length,
+        color: sub.color
+    })).filter(s => s.total > 0);
+
+    // Weekly activity (last 7 days)
+    const weeklyData = [];
+    for (let i = 6; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        const dateStr = d.toISOString().split('T')[0];
+        const dayName = d.toLocaleDateString('en', { weekday: 'short' });
+        const count = tasks.filter(t => t.status === 'completed' && t.completedAt?.startsWith(dateStr)).length;
+        weeklyData.push({ day: dayName, count });
+    }
+
+    return (
+        <div className="p-6 space-y-6 h-full overflow-y-auto">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{translate('achievements_title')}</h1>
+
+            {/* Stats Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="bg-gradient-to-br from-indigo-500 via-primary-600 to-purple-600 rounded-3xl p-6 text-white shadow-xl shadow-indigo-500/20 relative overflow-hidden group hover:shadow-2xl transition-all duration-300">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
+                    <div className="relative">
+                        <div className="flex items-center gap-2 mb-3">
+                            <Trophy className="w-5 h-5 opacity-80" />
+                            <p className="opacity-80 font-medium text-sm uppercase tracking-wider">{translate('total_completed')}</p>
+                        </div>
+                        <h2 className="text-5xl font-bold mt-1">{totalCompleted}</h2>
+                    </div>
+                </div>
+
+                <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-lg transition-all duration-300 relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 w-24 h-24 bg-primary-50 dark:bg-primary-900/10 rounded-full -translate-y-1/2 translate-x-1/2" />
+                    <div className="relative">
+                        <div className="flex items-center gap-2 mb-3">
+                            <Target className="w-5 h-5 text-primary-500" />
+                            <p className="text-gray-500 dark:text-gray-400 font-medium text-sm uppercase tracking-wider">{translate('completed_today')}</p>
+                        </div>
+                        <h2 className="text-5xl font-bold text-gray-900 dark:text-white mt-1">{completedToday}</h2>
+                    </div>
+                </div>
+
+                <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-lg transition-all duration-300 relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 w-24 h-24 bg-orange-50 dark:bg-orange-900/10 rounded-full -translate-y-1/2 translate-x-1/2" />
+                    <div className="relative">
+                        <div className="flex items-center gap-2 mb-3">
+                            <Flame className="w-5 h-5 text-orange-500" />
+                            <p className="text-gray-500 dark:text-gray-400 font-medium text-sm uppercase tracking-wider">{translate('streak')}</p>
+                        </div>
+                        <h2 className="text-5xl font-bold text-orange-500 mt-1">
+                            {streak} <span className="text-lg text-gray-400 font-medium">{translate('streak_days')}</span>
+                        </h2>
+                    </div>
+                </div>
+            </div>
+
+            {/* Charts */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Weekly Activity */}
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 h-80">
+                    <h3 className="font-bold text-gray-800 dark:text-white mb-4">{translate('completed_by_subject')}</h3>
+                    <ResponsiveContainer width="100%" height="85%">
+                        <BarChart data={subjectStats}>
+                            <XAxis dataKey="name" tick={{ fill: '#94a3b8', fontSize: 12 }} axisLine={false} tickLine={false} />
+                            <YAxis tick={{ fill: '#94a3b8', fontSize: 12 }} allowDecimals={false} axisLine={false} tickLine={false} />
+                            <RechartsTooltip
+                                contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 25px -3px rgba(0, 0, 0, 0.15)', fontSize: '13px' }}
+                                cursor={{ fill: 'transparent' }}
+                            />
+                            <Bar dataKey="count" radius={[8, 8, 4, 4]} barSize={36}>
+                                {subjectStats.map((entry, index) => (
+                                    <Cell key={`cell-${index}`} fill={entry.color} />
+                                ))}
+                            </Bar>
+                        </BarChart>
+                    </ResponsiveContainer>
+                </div>
+
+                {/* Pie Chart */}
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 h-80">
+                    <h3 className="font-bold text-gray-800 dark:text-white mb-4">{translate('distribution')}</h3>
+                    <ResponsiveContainer width="100%" height="85%">
+                        <RePieChart>
+                            <Pie
+                                data={subjectStats}
+                                cx="50%"
+                                cy="50%"
+                                innerRadius={55}
+                                outerRadius={85}
+                                paddingAngle={4}
+                                dataKey="count"
+                                stroke="none"
+                            >
+                                {subjectStats.map((entry, index) => (
+                                    <Cell key={`cell-${index}`} fill={entry.color} />
+                                ))}
+                            </Pie>
+                            <RechartsTooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 25px -3px rgba(0, 0, 0, 0.15)', fontSize: '13px' }} />
+                        </RePieChart>
+                    </ResponsiveContainer>
+                </div>
+            </div>
+
+            {/* Weekly Activity Bar */}
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700">
+                <h3 className="font-bold text-gray-800 dark:text-white mb-4">Weekly Activity</h3>
+                <div className="flex items-end gap-2 h-32">
+                    {weeklyData.map((d, i) => (
+                        <div key={i} className="flex-1 flex flex-col items-center gap-1">
+                            <div
+                                className="w-full rounded-lg bg-gradient-to-t from-primary-500 to-purple-400 transition-all duration-500 min-h-[4px]"
+                                style={{ height: `${Math.max(d.count * 25, 4)}%` }}
+                            />
+                            <span className="text-[10px] text-gray-400 font-medium">{d.day}</span>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default AchievementsPage;

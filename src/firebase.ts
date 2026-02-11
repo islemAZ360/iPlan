@@ -3,7 +3,7 @@ import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyDaizFwWVKow9HKyz3k_lJ52J130XSRjbs",
+  apiKey: "AIzaSyDAizFwWVKOw9HKyz3k_lJ52J130XSRjbs",
   authDomain: "iplan-bad48.firebaseapp.com",
   projectId: "iplan-bad48",
   storageBucket: "iplan-bad48.firebasestorage.app",
