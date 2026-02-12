@@ -1,68 +1,94 @@
-import { useLocation } from 'react-router-dom';
-import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, BookOpen, PieChart, Settings, Calendar as CalendarIcon, LogOut, Sparkles } from 'lucide-react';
-import { useApp } from '../context/AppContext';
+import { useState } from 'react';
+import { useLocation, NavLink } from 'react-router-dom';
+import { LayoutDashboard, BookOpen, PieChart, Settings, Calendar, LogOut, Sparkles, Timer, FileText, Columns3, CheckSquare } from 'lucide-react';
+import { useApp, getLevel } from '../context/AppContext';
 
 const Sidebar = () => {
-    const { translate, user, logout } = useApp();
+    const { translate, user, xp, logout } = useApp();
     const location = useLocation();
+    const { level, currentLevelXp, nextLevelXp } = getLevel(xp);
+    const [hovered, setHovered] = useState(false);
 
     const navItems = [
-        { path: '/', icon: CalendarIcon, label: 'nav_home' },
+        { path: '/dashboard', icon: LayoutDashboard, label: 'nav_dashboard' },
+        { path: '/', icon: Calendar, label: 'nav_home' },
+        { path: '/today', icon: CheckSquare, label: 'nav_today' },
+        { path: '/pomodoro', icon: Timer, label: 'nav_pomodoro' },
+        { path: '/kanban', icon: Columns3, label: 'nav_kanban' },
+        { path: '/notes', icon: FileText, label: 'nav_notes' },
+        { path: '/habits', icon: CheckSquare, label: 'nav_habits' },
         { path: '/subjects', icon: BookOpen, label: 'nav_subjects' },
-        { path: '/today', icon: LayoutDashboard, label: 'nav_today' },
         { path: '/achievements', icon: PieChart, label: 'nav_achievements' },
         { path: '/settings', icon: Settings, label: 'nav_settings' },
     ];
 
     return (
-        <div className="w-20 lg:w-72 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 flex flex-col h-full transition-all duration-300 z-30 shadow-sm">
+        <div
+            onMouseEnter={() => setHovered(true)}
+            onMouseLeave={() => setHovered(false)}
+            className="sidebar-aceternity group/sidebar bg-[rgba(8,4,30,0.75)] backdrop-blur-2xl border-r border-[rgba(139,92,246,0.15)] flex flex-col h-full"
+        >
             {/* Logo */}
-            <div className="p-6 flex items-center justify-center lg:justify-start gap-3 h-24">
-                <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-primary-500 via-primary-600 to-purple-600 flex items-center justify-center shadow-lg shadow-primary-500/30 transition-transform hover:scale-110 duration-300">
-                    <Sparkles className="w-6 h-6 text-white" />
+            <div className="flex items-center gap-3 px-4 h-16 border-b border-[rgba(139,92,246,0.15)] shrink-0">
+                <div className="w-8 h-8 rounded-tl-lg rounded-tr-sm rounded-br-lg rounded-bl-sm bg-gradient-to-br from-indigo-500 via-violet-500 to-fuchsia-500 flex items-center justify-center shadow-lg shadow-violet-500/30 shrink-0 transition-all duration-300 hover:scale-110 hover:shadow-violet-500/50">
+                    <Sparkles className="w-4 h-4 text-white" />
                 </div>
-                <span className="hidden lg:block font-extrabold text-2xl bg-gradient-to-r from-primary-600 to-purple-600 bg-clip-text text-transparent tracking-tight">
-                    {translate('app_name')}
-                </span>
+                <div className="sidebar-label overflow-hidden whitespace-nowrap">
+                    <span className="font-extrabold text-lg text-shimmer tracking-tight">iPlan</span>
+                    <p className="text-[10px] text-violet-300/60 font-medium -mt-0.5">Productivity Hub</p>
+                </div>
             </div>
 
-            {/* Navigation */}
-            <nav className="flex-1 px-3 space-y-1.5 py-4">
+            {/* Nav */}
+            <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto overflow-x-hidden">
                 {navItems.map(item => {
                     const isActive = location.pathname === item.path;
                     return (
                         <NavLink
                             key={item.path}
                             to={item.path}
-                            className={`
-                flex items-center gap-4 px-4 py-3.5 rounded-2xl transition-all duration-200 group relative overflow-hidden
-                ${isActive
-                                    ? 'bg-gradient-to-r from-primary-50 to-purple-50 dark:from-primary-900/20 dark:to-purple-900/20 text-primary-600 dark:text-primary-400 shadow-sm'
-                                    : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/60 hover:text-gray-900 dark:hover:text-gray-200'
-                                }
-              `}
+                            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-300 group relative ${isActive
+                                ? 'bg-gradient-to-r from-violet-600/20 to-indigo-600/10 shadow-sm shadow-violet-500/10 text-white border border-violet-500/20'
+                                : 'text-gray-400 hover:bg-white/5 hover:text-white border border-transparent'
+                                }`}
                         >
-                            <item.icon className={`w-6 h-6 lg:w-5 lg:h-5 transition-all duration-200 ${isActive ? 'stroke-[2.5px] scale-110' : 'group-hover:scale-110'}`} />
-                            <span className="hidden lg:block font-semibold text-sm">{translate(item.label)}</span>
-                            {isActive && <div className="hidden lg:block absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 rounded-l-full bg-gradient-to-b from-primary-500 to-purple-500" />}
+                            <item.icon className={`w-5 h-5 shrink-0 transition-all duration-300 ${isActive ? 'text-violet-400 stroke-[2.5px] drop-shadow-[0_0_6px_rgba(139,92,246,0.5)]' : 'text-gray-500 group-hover:text-gray-300'}`} />
+                            <span className="sidebar-label text-sm font-medium truncate whitespace-nowrap">{translate(item.label)}</span>
                         </NavLink>
                     );
                 })}
             </nav>
 
-            {/* User Profile Section */}
-            <div className="p-4 border-t border-gray-100 dark:border-gray-800 hidden lg:flex items-center gap-3 mx-3 mb-3 rounded-2xl bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800/60 dark:to-gray-800/30 p-4">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 via-orange-500 to-pink-500 border-2 border-white dark:border-gray-700 shadow-lg flex items-center justify-center text-white font-bold uppercase text-lg">
-                    {user.name.charAt(0)}
+            {/* XP Section */}
+            <div className="px-3 py-3 border-t border-[rgba(139,92,246,0.15)] sidebar-label-block">
+                <div className="bg-[rgba(139,92,246,0.08)] rounded-xl p-3 border border-[rgba(139,92,246,0.15)]">
+                    <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                            <span className="text-base">⚡</span>
+                            <span className="text-xs font-bold text-gray-200 whitespace-nowrap">{translate('level')} {level}</span>
+                        </div>
+                        <span className="text-[10px] font-bold text-amber-300">{currentLevelXp}/{nextLevelXp}</span>
+                    </div>
+                    <div className="w-full bg-[rgba(139,92,246,0.15)] rounded-full h-1.5 overflow-hidden">
+                        <div className="h-full rounded-full bg-gradient-to-r from-amber-400 via-fuchsia-500 to-violet-500 transition-all duration-700 shadow-[0_0_8px_rgba(168,85,247,0.4)]" style={{ width: `${(currentLevelXp / nextLevelXp) * 100}%` }} />
+                    </div>
                 </div>
-                <div className="overflow-hidden flex-1">
-                    <p className="text-sm font-bold text-gray-800 dark:text-white truncate">{user.name}</p>
-                    <p className="text-xs text-gray-400 truncate">{user.email || ''}</p>
+            </div>
+
+            {/* User */}
+            <div className="px-3 py-3 border-t border-[rgba(139,92,246,0.15)]">
+                <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 via-violet-500 to-fuchsia-500 flex items-center justify-center text-white font-bold text-xs uppercase shrink-0 shadow-lg shadow-violet-500/30 ring-2 ring-violet-500/20">
+                        {user.name.charAt(0)}
+                    </div>
+                    <div className="sidebar-label overflow-hidden flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-white truncate whitespace-nowrap">{user.name}</p>
+                        <p className="text-[10px] text-violet-300/50 truncate whitespace-nowrap">{user.email || ''}</p>
+                    </div>
+                    <button onClick={logout} className="sidebar-label p-1.5 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all duration-200 shrink-0" title={translate('logout')}>
+                        <LogOut className="w-4 h-4" />
+                    </button>
                 </div>
-                <button onClick={logout} className="text-gray-400 hover:text-red-500 transition-all duration-200 hover:scale-110" title={translate('logout')}>
-                    <LogOut className="w-4 h-4" />
-                </button>
             </div>
         </div>
     );

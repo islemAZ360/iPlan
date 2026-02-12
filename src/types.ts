@@ -25,17 +25,80 @@ export interface Task {
   description?: string;
   subjectId: string;
   dueType: TaskDueType;
-  dueDate: string | null; // ISO Date String YYYY-MM-DD
+  dueDate: string | null;
   status: 'pending' | 'completed' | 'delayed';
   priority?: Priority;
   createdAt: string;
   completedAt?: string;
 }
 
+// --- Notes ---
+export interface Note {
+  id: string;
+  title: string;
+  content: string;
+  subjectId?: string;
+  color: string;
+  createdAt: string;
+  updatedAt: string;
+  pinned?: boolean;
+}
+
+// --- Habits ---
+export interface Habit {
+  id: string;
+  name: string;
+  icon: string; // emoji
+  color: string;
+  createdAt: string;
+}
+
+export interface HabitLog {
+  habitId: string;
+  date: string; // YYYY-MM-DD
+}
+
+// --- Pomodoro ---
+export interface PomodoroSession {
+  id: string;
+  subjectId?: string;
+  duration: number; // minutes
+  completedAt: string;
+}
+
+// --- Gamification ---
+export type BadgeId =
+  | 'first_task'
+  | 'ten_tasks'
+  | 'fifty_tasks'
+  | 'hundred_tasks'
+  | 'streak_3'
+  | 'streak_7'
+  | 'streak_30'
+  | 'first_pomodoro'
+  | 'ten_pomodoros'
+  | 'all_today'
+  | 'note_taker'
+  | 'habit_starter'
+  | 'night_owl'
+  | 'early_bird';
+
+export interface Badge {
+  id: BadgeId;
+  unlockedAt: string;
+}
+
+// --- App State ---
 export interface AppState {
   user: UserProfile;
   subjects: Subject[];
   tasks: Task[];
+  notes: Note[];
+  habits: Habit[];
+  habitLogs: HabitLog[];
+  pomodoroSessions: PomodoroSession[];
+  xp: number;
+  badges: Badge[];
   language: Language;
   theme: Theme;
 }

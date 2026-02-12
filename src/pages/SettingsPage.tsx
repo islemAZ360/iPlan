@@ -1,8 +1,10 @@
 import { BookOpen, Moon, Sun, LogOut } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { Language } from '../types';
 
 const SettingsPage = () => {
+    const navigate = useNavigate();
     const { user, updateUser, language, setLanguage, theme, setTheme, translate, logout } = useApp();
 
     return (
@@ -55,20 +57,52 @@ const SettingsPage = () => {
             <div className="bg-white dark:bg-gray-800 rounded-3xl p-8 shadow-sm border border-gray-100 dark:border-gray-700">
                 <h2 className="text-lg font-bold mb-6 text-gray-900 dark:text-white">{translate('preferences')}</h2>
 
-                {/* Theme Toggle */}
-                <div className="flex items-center justify-between py-4 border-b border-gray-100 dark:border-gray-700">
+                {/* Theme Toggle — BB8 */}
+                <div className="flex flex-col sm:flex-row items-center justify-between py-6 border-b border-gray-100 dark:border-gray-700 gap-4">
                     <div className="flex items-center gap-4">
                         <div className={`p-2.5 rounded-xl transition-colors duration-300 ${theme === 'dark' ? 'bg-indigo-900/50 text-indigo-400' : 'bg-orange-100 text-orange-500'}`}>
                             {theme === 'dark' ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
                         </div>
                         <span className="text-gray-700 dark:text-gray-200 font-medium">{translate('theme')}</span>
                     </div>
-                    <button
-                        onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                        className={`w-14 h-8 rounded-full p-1 transition-all duration-300 ${theme === 'dark' ? 'bg-gradient-to-r from-primary-500 to-purple-500' : 'bg-gray-200'}`}
-                    >
-                        <div className={`w-6 h-6 bg-white rounded-full shadow-md transform transition-transform duration-300 ${theme === 'dark' ? 'translate-x-6' : 'translate-x-0'}`} />
-                    </button>
+                    <label className="bb8-toggle">
+                        <input
+                            className="bb8-toggle__checkbox"
+                            type="checkbox"
+                            checked={theme === 'dark'}
+                            onChange={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                        />
+                        <div className="bb8-toggle__container">
+                            <div className="bb8-toggle__scenery">
+                                <div className="bb8-toggle__star"></div>
+                                <div className="bb8-toggle__star"></div>
+                                <div className="bb8-toggle__star"></div>
+                                <div className="bb8-toggle__star"></div>
+                                <div className="bb8-toggle__star"></div>
+                                <div className="bb8-toggle__star"></div>
+                                <div className="bb8-toggle__star"></div>
+                                <div className="tatto-1"></div>
+                                <div className="tatto-2"></div>
+                                <div className="gomrassen"></div>
+                                <div className="hermes"></div>
+                                <div className="chenini"></div>
+                                <div className="bb8-toggle__cloud"></div>
+                                <div className="bb8-toggle__cloud"></div>
+                                <div className="bb8-toggle__cloud"></div>
+                            </div>
+                            <div className="bb8">
+                                <div className="bb8__head-container">
+                                    <div className="bb8__antenna"></div>
+                                    <div className="bb8__antenna"></div>
+                                    <div className="bb8__head"></div>
+                                </div>
+                                <div className="bb8__body"></div>
+                            </div>
+                            <div className="artificial__hidden">
+                                <div className="bb8__shadow"></div>
+                            </div>
+                        </div>
+                    </label>
                 </div>
 
                 {/* Language */}
@@ -89,8 +123,8 @@ const SettingsPage = () => {
                                 key={lang.value}
                                 onClick={() => setLanguage(lang.value)}
                                 className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 ${language === lang.value
-                                        ? 'bg-white dark:bg-gray-700 text-primary-600 dark:text-primary-400 shadow-sm'
-                                        : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
+                                    ? 'bg-white dark:bg-gray-700 text-primary-600 dark:text-primary-400 shadow-sm'
+                                    : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
                                     }`}
                             >
                                 {lang.label}
@@ -98,6 +132,16 @@ const SettingsPage = () => {
                         ))}
                     </div>
                 </div>
+            </div>
+
+            {/* About Developer Button */}
+            <div className="flex justify-center pt-4 pb-8">
+                <button
+                    onClick={() => navigate('/about-dev')}
+                    className="btn-glow"
+                >
+                    ABOUT DEVELOPER
+                </button>
             </div>
         </div>
     );

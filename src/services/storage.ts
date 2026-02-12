@@ -9,6 +9,12 @@ const defaultState: AppState = {
   },
   subjects: [],
   tasks: [],
+  notes: [],
+  habits: [],
+  habitLogs: [],
+  pomodoroSessions: [],
+  xp: 0,
+  badges: [],
   language: 'en',
   theme: 'light',
 };
@@ -19,7 +25,9 @@ export const loadState = (): AppState => {
     if (serializedState === null) {
       return defaultState;
     }
-    return JSON.parse(serializedState);
+    const parsed = JSON.parse(serializedState);
+    // Merge with defaults for new fields
+    return { ...defaultState, ...parsed };
   } catch (err) {
     console.error('Could not load state', err);
     return defaultState;

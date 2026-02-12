@@ -1,7 +1,7 @@
 import { useState, FormEvent } from 'react';
 import { signInWithPopup, GoogleAuthProvider, signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
 import { auth } from './firebase';
-import { LogIn, Mail, Lock, AlertCircle, Sparkles } from 'lucide-react';
+import { AlertCircle, Sparkles, ArrowRight } from 'lucide-react';
 
 interface LoginPageProps {
   onLogin: () => void;
@@ -47,85 +47,97 @@ const LoginPage = ({ onLogin }: LoginPageProps) => {
   };
 
   return (
-    <div className="min-h-screen login-bg flex items-center justify-center p-4">
-      <div className="max-w-md w-full animate-scaleIn">
+    <div className="min-h-screen login-bg flex items-center justify-center p-4 relative">
+      {/* Subtle grid lines */}
+      <div className="absolute inset-0 opacity-[0.03]" style={{
+        backgroundImage: 'linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)',
+        backgroundSize: '60px 60px'
+      }} />
+
+      <div className="max-w-md w-full relative z-10 animate-scaleIn">
         {/* Glass Card */}
-        <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl rounded-3xl shadow-2xl overflow-hidden border border-gray-200/50 dark:border-gray-700/50">
+        <div className="glass-card rounded-3xl overflow-hidden">
           <div className="p-8">
-            {/* Header */}
+            {/* Logo + Header */}
             <div className="text-center mb-8">
-              <div className="w-16 h-16 bg-gradient-to-br from-primary-500 via-primary-600 to-purple-600 rounded-2xl mx-auto flex items-center justify-center shadow-lg shadow-primary-500/30 mb-4 animate-float">
-                <Sparkles className="w-8 h-8 text-white" />
+              <div className="relative inline-block mb-5">
+                <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-2xl shadow-primary-500/30 animate-float relative">
+                  <Sparkles className="w-10 h-10 text-white" />
+                </div>
+                {/* Glow ring */}
+                <div className="absolute inset-0 rounded-2xl animate-pulse-glow" />
               </div>
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                {isLogin ? 'Welcome Back' : 'Create Account'}
+              <h1 className="text-3xl font-extrabold text-white mb-1 tracking-tight">
+                {isLogin ? 'Welcome Back' : 'Join iPlan'}
               </h1>
-              <p className="text-gray-500 dark:text-gray-400 mt-2">
-                {isLogin ? 'Sign in to access your tasks' : 'Sign up to start organizing'}
+              <p className="text-white/40 text-sm">
+                {isLogin ? 'Sign in to your productivity hub' : 'Start your productivity journey'}
               </p>
             </div>
 
             {/* Error */}
             {error && (
-              <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 rounded-xl flex items-center gap-3 text-red-600 dark:text-red-400 text-sm animate-slideDown border border-red-100 dark:border-red-900/30">
+              <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-center gap-3 text-red-400 text-sm animate-slideDown backdrop-blur-sm">
                 <AlertCircle className="w-5 h-5 shrink-0" />
-                <p>{error}</p>
+                <p className="text-xs">{error}</p>
               </div>
             )}
 
             {/* Form */}
             <form onSubmit={handleEmailAuth} className="space-y-4">
               <div>
-                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wider">Email Address</label>
-                <div className="relative">
-                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full pl-12 pr-4 py-3 bg-gray-50/80 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 rounded-xl outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:text-white transition-all duration-200"
-                    placeholder="name@example.com"
-                    required
-                  />
-                </div>
+                <label className="block text-[11px] font-bold text-white/40 mb-2 uppercase tracking-widest">Email</label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full px-4 py-3.5 bg-white/5 border border-white/10 rounded-xl outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-white placeholder-white/20 transition-all duration-200 text-sm"
+                  placeholder="name@example.com"
+                  required
+                />
               </div>
-
               <div>
-                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wider">Password</label>
-                <div className="relative">
-                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                  <input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full pl-12 pr-4 py-3 bg-gray-50/80 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 rounded-xl outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:text-white transition-all duration-200"
-                    placeholder="••••••••"
-                    required
-                  />
-                </div>
+                <label className="block text-[11px] font-bold text-white/40 mb-2 uppercase tracking-widest">Password</label>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full px-4 py-3.5 bg-white/5 border border-white/10 rounded-xl outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-white placeholder-white/20 transition-all duration-200 text-sm"
+                  placeholder="••••••••"
+                  required
+                />
               </div>
 
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3.5 bg-gradient-to-r from-primary-600 to-purple-600 hover:from-primary-700 hover:to-purple-700 text-white rounded-xl font-bold shadow-lg shadow-primary-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 active:scale-[0.98]"
+                className="w-full py-3.5 bg-gradient-to-r from-primary-500 via-purple-500 to-pink-500 hover:from-primary-600 hover:via-purple-600 hover:to-pink-600 text-white rounded-xl font-bold shadow-2xl shadow-primary-500/25 disabled:opacity-50 transition-all duration-300 active:scale-[0.97] relative overflow-hidden group btn-glow text-sm"
               >
-                {loading ? 'Processing...' : (isLogin ? 'Sign In' : 'Sign Up')}
+                <span className="relative z-10 flex items-center justify-center gap-2">
+                  {loading ? (
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  ) : (
+                    <>
+                      {isLogin ? 'Sign In' : 'Create Account'}
+                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                    </>
+                  )}
+                </span>
               </button>
             </form>
 
             {/* Divider */}
             <div className="my-6 flex items-center gap-4">
-              <div className="h-px bg-gray-200 dark:bg-gray-700 flex-1" />
-              <span className="text-xs text-gray-400 font-medium uppercase">Or continue with</span>
-              <div className="h-px bg-gray-200 dark:bg-gray-700 flex-1" />
+              <div className="h-px bg-white/10 flex-1" />
+              <span className="text-[10px] text-white/25 font-medium uppercase tracking-widest">or</span>
+              <div className="h-px bg-white/10 flex-1" />
             </div>
 
             {/* Google */}
             <button
               onClick={handleGoogleLogin}
               disabled={loading}
-              className="w-full py-3.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-white rounded-xl font-bold transition-all duration-200 active:scale-[0.98] flex items-center justify-center gap-3 hover:shadow-md"
+              className="w-full py-3.5 bg-white/5 border border-white/10 hover:bg-white/10 text-white rounded-xl font-bold transition-all duration-200 active:scale-[0.97] flex items-center justify-center gap-3 hover:border-white/20 text-sm"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24">
                 <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
@@ -133,21 +145,26 @@ const LoginPage = ({ onLogin }: LoginPageProps) => {
                 <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
                 <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
               </svg>
-              Google
+              Continue with Google
             </button>
 
             {/* Toggle */}
-            <p className="mt-8 text-center text-sm text-gray-500 dark:text-gray-400">
-              {isLogin ? "Don't have an account?" : "Already have an account?"}
+            <p className="mt-8 text-center text-sm text-white/30">
+              {isLogin ? "Don't have an account?" : 'Already have an account?'}
               <button
                 onClick={() => { setIsLogin(!isLogin); setError(''); }}
-                className="ml-2 font-bold text-primary-600 hover:text-primary-700 dark:text-primary-400 hover:underline outline-none transition-colors"
+                className="ml-2 font-bold text-primary-400 hover:text-primary-300 hover:underline outline-none transition-colors"
               >
                 {isLogin ? 'Sign Up' : 'Sign In'}
               </button>
             </p>
           </div>
         </div>
+
+        {/* Bottom branding */}
+        <p className="text-center mt-6 text-white/15 text-xs font-medium tracking-widest">
+          POWERED BY <span className="text-shimmer font-extrabold">iPLAN</span>
+        </p>
       </div>
     </div>
   );
