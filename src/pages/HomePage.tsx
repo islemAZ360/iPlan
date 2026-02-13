@@ -119,7 +119,6 @@ const HomePage = () => {
 
     const goToday = () => setCurrentDate(new Date());
 
-    // --- Mobile Agenda View Rendering ---
     const renderMobileSchedule = () => {
         // Generate Today + next 6 days for the continuous schedule
         const scheduleDays: Date[] = [];
@@ -131,100 +130,145 @@ const HomePage = () => {
         }
 
         return (
-            <div className="flex flex-col h-full bg-black min-h-screen text-white p-4 overflow-y-auto pb-24">
-                <div className="flex items-center justify-between mb-6 pt-2">
-                    <h1 className="text-3xl font-bold">{translate('schedule_title') || 'Schedule'}</h1>
-                    <div className="flex gap-2">
-                        {/* Mobile Toggle for Delayed Tasks */}
-                        <button
-                            onClick={() => setShowDelayed(!showDelayed)}
-                            className="flex items-center justify-center w-10 h-10 bg-gray-900 rounded-full border border-gray-800 text-red-500"
-                        >
-                            <AlertCircle className="w-5 h-5" />
-                            {delayedTasks.length > 0 && (
-                                <span className="absolute top-2 right-14 w-3 h-3 bg-red-500 rounded-full border-2 border-black"></span>
-                            )}
-                        </button>
-                        <button
-                            onClick={() => setActiveTask('new')}
-                            className="bg-primary-600 rounded-full p-2 shadow-lg shadow-primary-500/30"
-                        >
-                            <Plus className="w-6 h-6 text-white" />
-                        </button>
+            <div className="flex flex-col h-full bg-[#09090b] min-h-screen text-white relative overflow-hidden">
+                {/* Background ambient glows */}
+                <div className="absolute top-0 left-0 w-full h-96 bg-primary-900/20 blur-[100px] pointer-events-none rounded-full -translate-y-1/2" />
+                <div className="absolute bottom-0 right-0 w-64 h-64 bg-purple-900/20 blur-[80px] pointer-events-none rounded-full translate-y-1/2" />
+
+                {/* Sticky Header */}
+                <div className="sticky top-0 z-20 pt-4 pb-4 px-6 bg-[#09090b]/80 backdrop-blur-xl border-b border-white/5">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <h1 className="text-3xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-400">
+                                {translate('schedule_title') || 'Schedule'}
+                            </h1>
+                            <p className="text-xs text-gray-500 font-medium mt-0.5 uppercase tracking-widest">
+                                {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                            </p>
+                        </div>
+                        <div className="flex gap-3">
+                            {/* Delayed Tasks Toggle */}
+                            <button
+                                onClick={() => setShowDelayed(!showDelayed)}
+                                className="relative flex items-center justify-center w-11 h-11 rounded-2xl bg-gray-900/50 border border-white/10 text-red-500 hover:bg-gray-800 transition-all active:scale-95"
+                            >
+                                <AlertCircle className="w-5 h-5" />
+                                {delayedTasks.length > 0 && (
+                                    <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-red-500 rounded-full shadow-[0_0_8px_rgba(239,68,68,0.6)] animate-pulse"></span>
+                                )}
+                            </button>
+                            {/* Add Task Button */}
+                            <button
+                                onClick={() => setActiveTask('new')}
+                                className="w-11 h-11 rounded-2xl bg-gradient-to-br from-primary-500 to-purple-600 text-white shadow-lg shadow-primary-500/25 flex items-center justify-center active:scale-95 transition-transform"
+                            >
+                                <Plus className="w-6 h-6" />
+                            </button>
+                        </div>
                     </div>
                 </div>
 
-                <div className="space-y-6">
+                {/* Content */}
+                <div className="flex-1 overflow-y-auto px-6 pb-24 pt-4 space-y-8 relative z-10 scrollbar-hide">
                     {scheduleDays.map((date, idx) => {
                         const dateStr = date.toLocaleDateString('en-CA');
                         const daysTasks = getTasksForDate(dateStr);
                         const isToday = dateStr === todayStr;
-                        // Format: "Friday"
                         const dayName = date.toLocaleDateString(translate('lang_code') === 'ar' ? 'ar-EG' : 'en-US', { weekday: 'long' });
-                        // Format: "13 February"
                         const dryDate = date.toLocaleDateString(translate('lang_code') === 'ar' ? 'ar-EG' : 'en-US', { day: 'numeric', month: 'long' });
 
                         return (
-                            <div key={dateStr} className="animate-slideUp" style={{ animationDelay: `${idx * 0.05}s` }}>
-                                <div className="mb-3">
-                                    <h3 className={`text-xl font-bold ${isToday ? 'text-primary-400' : 'text-blue-400'}`}>
-                                        {dayName}
-                                    </h3>
-                                    <p className="text-gray-400 text-sm">{dryDate}</p>
+                            <div key={dateStr} className="animate-slideUp relative" style={{ animationDelay: `${idx * 0.05}s` }}>
+                                {/* Timeline Line */}
+                                <div className="absolute left-[19px] top-10 bottom-0 w-0.5 bg-gradient-to-b from-gray-800 to-transparent rounded-full" />
+
+                                {/* Date Header */}
+                                <div className="flex items-start gap-4 mb-4 relative z-10">
+                                    <div className={`
+                                        w-10 h-10 rounded-xl flex flex-col items-center justify-center border shadow-lg backdrop-blur-md
+                                        ${isToday
+                                            ? 'bg-primary-500/10 border-primary-500/50 text-primary-400 shadow-primary-500/10'
+                                            : 'bg-gray-800/50 border-white/5 text-gray-400'}
+                                    `}>
+                                        <span className="text-xs font-bold uppercase">{date.toLocaleDateString('en-US', { weekday: 'short' }).slice(0, 3)}</span>
+                                        <span className="text-sm font-black">{date.getDate()}</span>
+                                    </div>
+                                    <div className="pt-1">
+                                        <h3 className={`text-lg font-bold ${isToday ? 'text-white' : 'text-gray-300'}`}>
+                                            {isToday ? 'Today' : dayName}
+                                        </h3>
+                                        <p className="text-xs text-gray-500 font-medium">{dryDate}</p>
+                                    </div>
                                 </div>
 
-                                {daysTasks.length === 0 ? (
-                                    <div className="text-gray-600 text-sm py-2 pl-4 border-l-2 border-gray-800">
-                                        {translate('no_tasks') || 'No classes/tasks'}
-                                    </div>
-                                ) : (
-                                    <div className="space-y-3">
-                                        {daysTasks.map(task => {
+                                {/* Tasks List */}
+                                <div className="space-y-3 pl-14">
+                                    {daysTasks.length === 0 ? (
+                                        <div className="py-4 px-4 rounded-2xl bg-gray-900/30 border border-dashed border-gray-800 text-gray-600 text-sm flex items-center gap-3">
+                                            <div className="w-8 h-1 bg-gray-800 rounded-full" />
+                                            {translate('no_tasks') || 'No tasks scheduled'}
+                                        </div>
+                                    ) : (
+                                        daysTasks.map((task, tIdx) => {
                                             const subject = subjects.find(s => s.id === task.subjectId);
                                             return (
                                                 <div
                                                     key={task.id}
                                                     onClick={() => setActiveTask(task)}
-                                                    className="flex group relative pl-4 border-l-2 transition-all duration-200 hover:bg-white/5 cursor-pointer"
-                                                    style={{ borderLeftColor: subject?.color || '#555' }}
+                                                    className={`
+                                                        group relative p-4 rounded-2xl border border-white/5 bg-gray-800/20 backdrop-blur-sm
+                                                        hover:bg-gray-800/40 transition-all duration-200 active:scale-[0.98]
+                                                        ${task.status === 'completed' ? 'opacity-50 grayscale-[0.5]' : ''}
+                                                    `}
                                                 >
-                                                    <div className="mr-4 min-w-[50px] flex flex-col items-center justify-start pt-1">
-                                                        <div className={`
-                                                            w-3 h-3 rounded-full mb-1
-                                                            ${task.priority === 'high' ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]' :
-                                                                task.priority === 'medium' ? 'bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.6)]' :
-                                                                    'bg-blue-400 shadow-[0_0_8px_rgba(96,165,250,0.6)]'}
-                                                        `} />
-                                                        <span className={`
-                                                            text-[10px] font-bold uppercase tracking-wider
-                                                            ${task.priority === 'high' ? 'text-red-500' :
-                                                                task.priority === 'medium' ? 'text-orange-500' :
-                                                                    'text-blue-400'}
-                                                        `}>
-                                                            {task.priority === 'high' ? 'High' : task.priority === 'medium' ? 'Mid' : 'Low'}
-                                                        </span>
-                                                    </div>
-                                                    <div className="flex-1 pb-4">
-                                                        {subject && (
-                                                            <span
-                                                                className="text-[10px] px-2 py-0.5 rounded-full text-white mb-1 inline-block"
-                                                                style={{ backgroundColor: subject.color }}
-                                                            >
+                                                    {/* Timeline Dot Connection */}
+                                                    <div className="absolute -left-[37px] top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full border-2 border-[#09090b]"
+                                                        style={{ backgroundColor: subject?.color || '#555' }}
+                                                    />
+
+                                                    {/* Subject Badge */}
+                                                    {subject && (
+                                                        <div className="absolute top-3 right-3">
+                                                            <div className="px-2 py-1 rounded-lg bg-black/40 border border-white/5 text-[10px] font-bold text-gray-300 flex items-center gap-1.5">
+                                                                <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: subject.color }} />
                                                                 {subject.name}
-                                                            </span>
-                                                        )}
-                                                        <h4 className={`text-base font-medium text-gray-100 ${task.status === 'completed' ? 'line-through opacity-50' : ''}`}>
+                                                            </div>
+                                                        </div>
+                                                    )}
+
+                                                    {/* Content */}
+                                                    <div className="pr-16"> {/* Right padding for badge */}
+                                                        <h4 className={`text-base font-bold text-white mb-1 ${task.status === 'completed' ? 'line-through text-gray-500' : ''}`}>
                                                             {task.title}
                                                         </h4>
+
                                                         {task.description && (
-                                                            <p className="text-gray-500 text-sm line-clamp-1 mt-0.5">{task.description}</p>
+                                                            <p className="text-xs text-gray-400 line-clamp-1 mb-2">
+                                                                {task.description}
+                                                            </p>
                                                         )}
+
+                                                        {/* Priority & Status */}
+                                                        <div className="flex items-center gap-3 mt-2">
+                                                            <div className={`
+                                                                flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider
+                                                                ${task.priority === 'high' ? 'bg-red-500/10 text-red-500 border border-red-500/20' :
+                                                                    task.priority === 'medium' ? 'bg-orange-500/10 text-orange-500 border border-orange-500/20' :
+                                                                        'bg-blue-500/10 text-blue-500 border border-blue-500/20'}
+                                                            `}>
+                                                                <div className={`w-1 h-1 rounded-full ${task.priority === 'high' ? 'bg-red-500' :
+                                                                        task.priority === 'medium' ? 'bg-orange-500' :
+                                                                            'bg-blue-500'
+                                                                    }`} />
+                                                                {task.priority || 'Low'}
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             );
-                                        })}
-                                    </div>
-                                )}
+                                        })
+                                    )}
+                                </div>
                             </div>
                         );
                     })}
