@@ -188,11 +188,21 @@ const HomePage = () => {
                                                     className="flex group relative pl-4 border-l-2 transition-all duration-200 hover:bg-white/5 cursor-pointer"
                                                     style={{ borderLeftColor: subject?.color || '#555' }}
                                                 >
-                                                    <div className="mr-4 min-w-[50px] flex flex-col justify-start pt-1">
-                                                        <span className="text-white font-bold block text-lg leading-none">
-                                                            09:00
+                                                    <div className="mr-4 min-w-[50px] flex flex-col items-center justify-start pt-1">
+                                                        <div className={`
+                                                            w-3 h-3 rounded-full mb-1
+                                                            ${task.priority === 'high' ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]' :
+                                                                task.priority === 'medium' ? 'bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.6)]' :
+                                                                    'bg-blue-400 shadow-[0_0_8px_rgba(96,165,250,0.6)]'}
+                                                        `} />
+                                                        <span className={`
+                                                            text-[10px] font-bold uppercase tracking-wider
+                                                            ${task.priority === 'high' ? 'text-red-500' :
+                                                                task.priority === 'medium' ? 'text-orange-500' :
+                                                                    'text-blue-400'}
+                                                        `}>
+                                                            {task.priority === 'high' ? 'High' : task.priority === 'medium' ? 'Mid' : 'Low'}
                                                         </span>
-                                                        <span className="text-gray-500 text-xs">10:30</span>
                                                     </div>
                                                     <div className="flex-1 pb-4">
                                                         {subject && (
