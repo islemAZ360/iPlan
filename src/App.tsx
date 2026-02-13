@@ -13,18 +13,22 @@ export default function App() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const startTime = Date.now();
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-      setLoading(false);
+      const elapsedTime = Date.now() - startTime;
+      const remainingTime = Math.max(0, 2000 - elapsedTime);
+
+      setTimeout(() => {
+        setUser(currentUser);
+        setLoading(false);
+      }, remainingTime);
     });
     return () => unsubscribe();
   }, []);
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-950 login-bg text-white">
-        <Loader />
-      </div>
+      <Loader />
     );
   }
 

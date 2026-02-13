@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronDown, ChevronUp, Instagram, Send, Facebook } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import './AboutDevPage.css';
 
@@ -22,16 +22,9 @@ const AboutDevPage = () => {
     return (
         <div className="min-h-screen w-full bg-slate-950 text-white relative flex overflow-y-auto overflow-x-hidden font-sans">
 
-            {/* Back Button */}
-            <button
-                onClick={() => navigate('/settings')}
-                className="fixed top-6 left-6 z-50 p-3 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-full transition-all duration-300 group"
-            >
-                <ArrowLeft className="w-6 h-6 text-white group-hover:-translate-x-1 transition-transform" />
-            </button>
 
             {/* ---- MAIN CONTENT (centered) ---- */}
-            <div className="relative z-10 w-full flex flex-col items-center justify-end" style={{ minHeight: '100vh', paddingBottom: '40px' }}>
+            <div className="relative z-10 w-full flex flex-col items-center justify-end" style={{ minHeight: '100vh', paddingBottom: '10px' }}>
 
                 {/* ---- TOASTER SECTION ---- */}
                 <div className="relative" style={{ minHeight: '140px' }}>
@@ -42,8 +35,8 @@ const AboutDevPage = () => {
                         style={{
                             bottom: 'calc(100% - 22px)', // Overlap with toaster to look like it's inside
                             transform: 'translateX(-50%)',
-                            width: expanded ? 'min(85vw, 350px)' : '120px',
-                            maxHeight: toastOut ? (expanded ? '500px' : '130px') : '0px',
+                            width: expanded ? 'min(90vw, 400px)' : '280px', // Wider when expanded
+                            maxHeight: toastOut ? (expanded ? '600px' : '160px') : '0px', // Taller when expanded
                             opacity: toastOut ? 1 : 0,
                             overflow: 'hidden',
                             transition: 'max-height 0.6s ease-out, opacity 0.4s ease, width 0.5s ease',
@@ -51,7 +44,7 @@ const AboutDevPage = () => {
                         }}
                     >
                         <div
-                            className="px-6 py-4 border-[6px] shadow-2xl relative"
+                            className="px-5 py-5 border-[6px] shadow-2xl relative flex flex-col gap-4"
                             style={{
                                 backgroundColor: '#fdf3e6', // Creamy base
                                 backgroundImage: `
@@ -67,35 +60,58 @@ const AboutDevPage = () => {
                                 borderBottom: 'none',
                             }}
                         >
-                            <h3 className="text-center font-bold text-amber-900 text-xs mb-0.5">
-                                {translate('about_dev_title')}
-                            </h3>
+                            <div className="flex items-start gap-4">
+                                {/* Profile Image - Left Side */}
+                                <div className="shrink-0 w-16 h-16 rounded-full overflow-hidden border-2 border-amber-900/30 shadow-inner bg-amber-100">
+                                    <img src="/FBprofile.png" alt="Developer" className="w-full h-full object-cover" />
+                                </div>
 
-                            {!expanded && (
-                                <p className="text-[10px] text-amber-800/70 text-center">
-                                    🧑‍💻
-                                </p>
-                            )}
+                                {/* Content - Right Side */}
+                                <div className="flex-1 pt-1">
+                                    <h3 className="font-bold text-amber-900 text-sm mb-1 leading-tight">
+                                        {translate('about_dev_title')}
+                                    </h3>
+
+                                    {!expanded && (
+                                        <p className="text-[11px] text-amber-800/80 leading-snug">
+                                            🧑‍💻 Full Stack Developer & UI/UX Enthusiast.
+                                        </p>
+                                    )}
+                                </div>
+                            </div>
 
                             {expanded && (
-                                <p className="text-xs text-amber-800 leading-relaxed whitespace-pre-line mt-1 text-left">
-                                    {translate('about_dev_bio_full')}
-                                </p>
+                                <div className="animate-fadeIn">
+                                    <p className="text-xs text-amber-900 leading-relaxed whitespace-pre-line mb-4 border-t border-amber-900/10 pt-3">
+                                        {translate('about_dev_bio_full')}
+                                    </p>
+
+                                    {/* Social Links */}
+                                    <div className="flex items-center justify-center gap-4 mb-2">
+                                        <a href="https://www.facebook.com/islem.azaizia.7/" target="_blank" rel="noopener noreferrer" className="p-2 bg-blue-600/10 rounded-full text-blue-700 hover:bg-blue-600 hover:text-white transition-all transform hover:scale-110" title="Facebook">
+                                            <Facebook className="w-5 h-5" />
+                                        </a>
+                                        <a href="https://t.me/ISLAMAZAIZIA" target="_blank" rel="noopener noreferrer" className="p-2 bg-sky-500/10 rounded-full text-sky-600 hover:bg-sky-500 hover:text-white transition-all transform hover:scale-110" title="Telegram">
+                                            <Send className="w-5 h-5" />
+                                        </a>
+                                        <a href="https://www.instagram.com/islem_azaizia/" target="_blank" rel="noopener noreferrer" className="p-2 bg-pink-600/10 rounded-full text-pink-600 hover:bg-pink-600 hover:text-white transition-all transform hover:scale-110" title="Instagram">
+                                            <Instagram className="w-5 h-5" />
+                                        </a>
+                                    </div>
+                                </div>
                             )}
 
                             <button
                                 onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }}
-                                className="flex items-center gap-1 mx-auto mt-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold transition-all hover:scale-105"
+                                className="flex items-center justify-center gap-1 mx-auto w-full mt-auto px-2.5 py-1.5 rounded-xl text-[10px] font-bold transition-all hover:bg-amber-900/5 active:bg-amber-900/10"
                                 style={{
-                                    background: 'rgba(100,86,32,0.1)',
-                                    border: '1px solid #d38c46',
                                     color: '#8c5e2f',
                                 }}
                             >
                                 {expanded ? (
-                                    <>{translate('about_dev_show_less')} <ChevronUp className="w-3 h-3" /></>
+                                    <span className="flex items-center gap-1 text-amber-900/70">{translate('about_dev_show_less')} <ChevronUp className="w-3 h-3" /></span>
                                 ) : (
-                                    <>{translate('about_dev_show_more')} <ChevronDown className="w-3 h-3" /></>
+                                    <span className="flex items-center gap-1">{translate('about_dev_show_more')} <ChevronDown className="w-3 h-3" /></span>
                                 )}
                             </button>
                         </div>
@@ -155,7 +171,7 @@ const AboutDevPage = () => {
                     </div>
                 </div>
 
-                <div className="text-gray-500 text-sm mt-16 pb-8">
+                <div className="text-gray-500 text-sm mt-8 pb-4">
                     © 2026 iPlan. Created with ❤️ by Islam Azaizia.
                 </div>
             </div>

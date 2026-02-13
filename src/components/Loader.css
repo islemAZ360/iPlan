@@ -1,11 +1,54 @@
 /* From Uiverse.io by AatreyuShau */
+/* Full Screen Container */
+.loader-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    background: radial-gradient(circle at 50% 50%, #1e1b4b 0%, #0f0a28 100%);
+    overflow: hidden;
+}
+
+/* Animated Background Mesh */
+.loader-bg-mesh {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 150vw;
+    height: 150vh;
+    background:
+        radial-gradient(at 0% 0%, var(--mesh-1) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, var(--primary) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, var(--secondary) 0px, transparent 50%),
+        radial-gradient(at 0% 100%, var(--accent) 0px, transparent 50%);
+    opacity: 0.15;
+    filter: blur(60px);
+    animation: loader-spin 20s linear infinite;
+    z-index: -1;
+}
+
+@keyframes loader-spin {
+    from {
+        transform: translate(-50%, -50%) rotate(0deg);
+    }
+
+    to {
+        transform: translate(-50%, -50%) rotate(360deg);
+    }
+}
+
 .loader {
-    scale: 0.75;
+    scale: 0.9;
+    /* Slightly lager */
     position: relative;
     width: 200px;
     height: 200px;
-    /* Center the loader visually */
-    margin: 0 auto;
 }
 
 .loader svg {
@@ -40,6 +83,25 @@
     translate: 30px 155px;
     z-index: 3;
     animation: lstep 1s infinite ease-in;
+}
+
+
+.eyes {
+    animation: blink 4s infinite linear;
+    transform-origin: center;
+}
+
+@keyframes blink {
+
+    0%,
+    90%,
+    100% {
+        transform: scaleY(1);
+    }
+
+    95% {
+        transform: scaleY(0.1);
+    }
 }
 
 @keyframes bob {
