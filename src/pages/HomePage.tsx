@@ -1,5 +1,5 @@
 import { useState, DragEvent } from 'react';
-import { Plus, AlertCircle, CheckCircle, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Plus, AlertCircle, CheckCircle, ChevronLeft, ChevronRight, ChevronUp, ChevronDown } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { Task } from '../types';
 import TaskCard from '../components/TaskCard';
@@ -13,6 +13,14 @@ const HomePage = () => {
     const [activeTask, setActiveTask] = useState<Task | 'new' | null>(null);
     const [showDelayed, setShowDelayed] = useState(false);
 
+    // Mobile View State
+    // Default to false (Week view) for mobile, true (Month view) for desktop could be handled by media query,
+    // but React state relies on JS. We'll default to 'false' (collapsed) effectively for mobile logic, 
+    // and let desktop CSS override or we assume desktop users can click expand if they want, 
+    // BUT user said "Deskstop is default expanded".
+    // Let's use a simple heuristic: default to true if huge screen, else false.
+    const [isExpanded, setIsExpanded] = useState(() => window.innerWidth > 1024);
+
     const getDaysInMonth = (year: number, month: number) => new Date(year, month + 1, 0).getDate();
     const getFirstDayOfMonth = (year: number, month: number) => new Date(year, month, 1).getDay();
 
@@ -20,11 +28,30 @@ const HomePage = () => {
     const month = currentDate.getMonth();
     const daysInMonth = getDaysInMonth(year, month);
     const firstDay = getFirstDayOfMonth(year, month);
-    const todayStr = new Date().toISOString().split('T')[0];
+    // Use local date string for today to avoid timezone issues
+    const todayStr = new Date().toLocaleDateString('en-CA');
 
-    const days: (Date | null)[] = [];
-    for (let i = 0; i < firstDay; i++) days.push(null);
-    for (let i = 1; i <= daysInMonth; i++) days.push(new Date(year, month, i));
+    // Generate Month Days
+    const monthDays: (Date | null)[] = [];
+    for (let i = 0; i < firstDay; i++) monthDays.push(null);
+    for (let i = 1; i <= daysInMonth; i++) monthDays.push(new Date(year, month, i));
+
+    // Generate Week Days (Current Week Logic)
+    // Find the start of the week for the current selected date
+    const startOfWeek = new Date(currentDate);
+    startOfWeek.setDate(currentDate.getDate() - currentDate.getDay()); // Go to Sunday
+    const weekDays: Date[] = [];
+    for (let i = 0; i < 7; i++) {
+        const d = new Date(startOfWeek);
+        d.setDate(startOfWeek.getDate() + i);
+        weekDays.push(d);
+    }
+
+    // Determine what to show
+    // If expanded, show full month. If not expanded, show week.
+    // NOTE: On Desktop (lg), we might want to enforce expanded. 
+    // But for now, let's treat isExpanded as the master toggle.
+    const visibleDays = isExpanded ? monthDays : weekDays;
 
     const getTasksForDate = (dateStr: string) => tasks.filter(t => t.dueDate === dateStr && t.status !== 'delayed');
     const delayedTasks = tasks.filter(t => t.status === 'delayed');
@@ -70,8 +97,26 @@ const HomePage = () => {
         setActiveTask(null);
     };
 
-    const nextMonth = () => setCurrentDate(new Date(year, month + 1));
-    const prevMonth = () => setCurrentDate(new Date(year, month - 1));
+    const nextStep = () => {
+        if (isExpanded) {
+            setCurrentDate(new Date(year, month + 1));
+        } else {
+            const nextWeek = new Date(currentDate);
+            nextWeek.setDate(currentDate.getDate() + 7);
+            setCurrentDate(nextWeek);
+        }
+    };
+
+    const prevStep = () => {
+        if (isExpanded) {
+            setCurrentDate(new Date(year, month - 1));
+        } else {
+            const prevWeek = new Date(currentDate);
+            prevWeek.setDate(currentDate.getDate() - 7);
+            setCurrentDate(prevWeek);
+        }
+    };
+
     const goToday = () => setCurrentDate(new Date());
 
     return (
@@ -102,20 +147,26 @@ const HomePage = () => {
                 </div>
 
                 {/* Calendar */}
-                <div className="bg-white dark:bg-gray-900 rounded-3xl shadow-sm border border-gray-200 dark:border-gray-800 flex flex-col flex-1 overflow-hidden">
+                <div className="bg-white dark:bg-gray-900 rounded-3xl shadow-sm border border-gray-200 dark:border-gray-800 flex flex-col flex-1 overflow-hidden relative">
                     {/* Calendar Header */}
-                    <div className="flex items-center justify-between p-5 lg:p-6 border-b border-gray-100 dark:border-gray-800">
-                        <h2 className="text-xl lg:text-2xl font-bold text-gray-800 dark:text-white capitalize">
+                    <div className="flex items-center justify-between p-4 lg:p-6 border-b border-gray-100 dark:border-gray-800">
+                        <h2 className="text-lg lg:text-2xl font-bold text-gray-800 dark:text-white capitalize flex items-center gap-2">
                             {currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })}
+                            {!isExpanded && (
+                                <span className="lg:hidden text-xs bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-full text-gray-500 font-normal">
+                                    Week View
+                                </span>
+                            )}
                         </h2>
+
                         <div className="flex gap-1 items-center bg-gray-100 dark:bg-gray-800 rounded-xl p-1">
-                            <button onClick={prevMonth} className="p-2 hover:bg-white dark:hover:bg-gray-700 rounded-lg text-gray-600 dark:text-gray-300 transition-all duration-200">
+                            <button onClick={prevStep} className="p-2 hover:bg-white dark:hover:bg-gray-700 rounded-lg text-gray-600 dark:text-gray-300 transition-all duration-200">
                                 <ChevronLeft className="w-4 h-4" />
                             </button>
                             <button onClick={goToday} className="px-3 py-1.5 text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-white dark:hover:bg-gray-700 rounded-lg transition-colors">
                                 {translate('today_date')}
                             </button>
-                            <button onClick={nextMonth} className="p-2 hover:bg-white dark:hover:bg-gray-700 rounded-lg text-gray-600 dark:text-gray-300 transition-all duration-200">
+                            <button onClick={nextStep} className="p-2 hover:bg-white dark:hover:bg-gray-700 rounded-lg text-gray-600 dark:text-gray-300 transition-all duration-200">
                                 <ChevronRight className="w-4 h-4" />
                             </button>
                         </div>
@@ -124,16 +175,18 @@ const HomePage = () => {
                     {/* Day Headers */}
                     <div className="grid grid-cols-7 border-b border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50">
                         {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => (
-                            <div key={d} className="py-3 text-center text-[11px] font-bold text-gray-400 uppercase tracking-widest">{d}</div>
+                            <div key={d} className="py-3 text-center text-[10px] lg:text-[11px] font-bold text-gray-400 uppercase tracking-widest">{d}</div>
                         ))}
                     </div>
 
                     {/* Calendar Grid */}
-                    <div className="grid grid-cols-7 auto-rows-fr bg-gray-100 dark:bg-gray-800 gap-px flex-1 overflow-y-auto min-w-[600px] lg:min-w-0">
-                        {days.map((date, idx) => {
-                            if (!date) return <div key={`empty-${idx}`} className="bg-white dark:bg-gray-900 min-h-[80px] lg:min-h-[100px]" />;
+                    <div className={`grid grid-cols-7 bg-gray-100 dark:bg-gray-800 gap-px flex-1 overflow-y-auto transition-all duration-300 ${isExpanded ? 'auto-rows-fr' : 'auto-rows-[minmax(120px,1fr)]'}`}>
+                        {visibleDays.map((date, idx) => {
+                            if (!date) return <div key={`empty-${idx}`} className="bg-white dark:bg-gray-900 min-h-[80px]" />;
 
-                            const dateStr = date.toISOString().split('T')[0];
+                            // Fix: Use local date string to avoid timezone offsets
+                            const dateStr = date.toLocaleDateString('en-CA'); // YYYY-MM-DD in local time
+
                             const dayTasks = getTasksForDate(dateStr);
                             const isToday = dateStr === todayStr;
                             const isDragTarget = draggedOverDate === dateStr;
@@ -146,36 +199,65 @@ const HomePage = () => {
                                     onDrop={(e) => handleDrop(e, dateStr)}
                                     onDragLeave={() => setDraggedOverDate(null)}
                                     className={`
-                    bg-white dark:bg-gray-900 min-h-[80px] lg:min-h-[100px] p-1.5 lg:p-2 transition-all duration-200 relative flex flex-col gap-1
+                    bg-white dark:bg-gray-900 p-1 lg:p-2 transition-all duration-200 relative flex flex-col gap-1 group
                     ${isDragTarget ? 'bg-primary-50 dark:bg-primary-900/20 ring-inset ring-2 ring-primary-500 z-10 scale-[1.02]' : ''}
                     ${isPast ? 'bg-gray-50/50 dark:bg-gray-900/80' : ''}
+                    ${!isExpanded ? 'min-h-[120px]' : 'min-h-[80px] lg:min-h-[100px]'}
                   `}
                                 >
                                     <div className={`
-                    text-xs font-bold w-6 h-6 flex items-center justify-center rounded-full mb-0.5
+                    text-[10px] lg:text-xs font-bold w-6 h-6 flex items-center justify-center rounded-full mb-0.5
                     ${isToday ? 'bg-gradient-to-br from-primary-500 to-purple-600 text-white shadow-md shadow-primary-500/30' : 'text-gray-500 dark:text-gray-400'}
                   `}>
                                         {date.getDate()}
                                     </div>
-                                    <div className="flex-1 space-y-1 w-full overflow-hidden">
-                                        {dayTasks.slice(0, 3).map(task => (
-                                            <TaskCard
-                                                key={task.id}
-                                                task={task}
-                                                subject={subjects.find(s => s.id === task.subjectId)}
-                                                compact
-                                                draggable
-                                                onClick={() => setActiveTask(task)}
-                                            />
-                                        ))}
-                                        {dayTasks.length > 3 && (
-                                            <div className="text-[10px] text-gray-400 font-medium text-center">+{dayTasks.length - 3}</div>
+
+                                    <div className="flex-1 w-full overflow-hidden flex flex-col gap-0.5">
+                                        {dayTasks.slice(0, isExpanded ? 3 : 5).map(task => {
+                                            const subject = subjects.find(s => s.id === task.subjectId);
+                                            return (
+                                                <div
+                                                    key={task.id}
+                                                    draggable
+                                                    onDragStart={(e) => e.dataTransfer.setData('taskId', task.id)}
+                                                    onClick={(e) => { e.stopPropagation(); setActiveTask(task); }}
+                                                    className="group/task cursor-pointer relative"
+                                                >
+                                                    {/* Mobile/Compact View: Text with Color Strip */}
+                                                    <div className={`
+                                                        flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] lg:text-[10px] font-medium truncate
+                                                        ${task.status === 'completed' ? 'opacity-50 line-through' : ''}
+                                                        hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors border-l-2
+                                                    `}
+                                                        style={{ borderLeftColor: subject?.color || '#ccc' }}
+                                                    >
+                                                        <span className="truncate flex-1">{task.title}</span>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                        {dayTasks.length > (isExpanded ? 3 : 5) && (
+                                            <div className="text-[9px] text-gray-400 font-medium text-center mt-auto">
+                                                +{dayTasks.length - (isExpanded ? 3 : 5)}
+                                            </div>
                                         )}
                                     </div>
                                 </div>
                             );
                         })}
                     </div>
+
+                    {/* Mobile Expand/Collapse Button handled in toolbar now or floating */}
+                    <button
+                        onClick={() => setIsExpanded(!isExpanded)}
+                        className="lg:hidden absolute bottom-4 right-4 bg-white dark:bg-gray-800 shadow-lg border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 px-4 py-2 rounded-full text-xs font-bold flex items-center gap-2 z-20"
+                    >
+                        {isExpanded ? (
+                            <>Collapse <ChevronUp className="w-3 h-3" /></>
+                        ) : (
+                            <>Expand Month <ChevronDown className="w-3 h-3" /></>
+                        )}
+                    </button>
                 </div>
             </div>
 

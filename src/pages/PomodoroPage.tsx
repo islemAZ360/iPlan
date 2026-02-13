@@ -93,7 +93,7 @@ const PomodoroPage = () => {
     };
 
     return (
-        <div className={`h-full overflow-y-auto flex flex-col items-center justify-center p-6 bg-gradient-to-br ${modeColors[mode].bg} transition-all duration-700 mesh-bg`}>
+        <div className={`h-full overflow-y-auto flex flex-col items-center justify-center p-6 pt-24 lg:pt-6 bg-gradient-to-br ${modeColors[mode].bg} transition-all duration-700 mesh-bg`}>
             {/* Mode Tabs */}
             <div className="flex gap-1 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-1 mb-10 shadow-sm border border-gray-200/50 dark:border-gray-700/50">
                 {([
