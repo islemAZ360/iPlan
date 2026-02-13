@@ -116,7 +116,8 @@ export const AppProvider = ({ children, initialUser }: { children: ReactNode; in
                     ...prev.user,
                     name: initialUser.displayName || initialUser.email?.split('@')[0] || 'User',
                     email: initialUser.email || undefined,
-                    uid: initialUser.uid
+                    uid: initialUser.uid,
+                    avatarUrl: initialUser.photoURL || prev.user.avatarUrl, // Use existing if not in Auth
                 }
             }));
         }
