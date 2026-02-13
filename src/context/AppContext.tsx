@@ -1,9 +1,10 @@
-import { useState, useEffect, createContext, useContext, useCallback, ReactNode } from 'react';
+import { useState, useEffect, createContext, useContext, useCallback, ReactNode, useRef } from 'react';
 import { AppState, Language, Subject, Task, Theme, UserProfile, Note, Habit, HabitLog, PomodoroSession, Badge, BadgeId } from '../types';
 import { loadState, saveState } from '../services/storage';
 import { getTranslation } from '../services/i18n';
 import { signOut, User as FirebaseUser } from 'firebase/auth';
-import { auth } from '../firebase';
+import { auth, db } from '../firebase';
+import { doc, onSnapshot, setDoc } from 'firebase/firestore';
 
 // --- Badge Definitions ---
 export const BADGE_DEFINITIONS: Record<BadgeId, { icon: string; title: string; titleAr: string; desc: string }> = {
@@ -104,7 +105,9 @@ export function calculateStreak(tasks: Task[]): number {
 // --- Provider ---
 export const AppProvider = ({ children, initialUser }: { children: ReactNode; initialUser: FirebaseUser | null }) => {
     const [state, setState] = useState<AppState>(loadState());
+    const isRemoteUpdate = useRef(false);
 
+    // Initial User Setup
     useEffect(() => {
         if (initialUser) {
             setState(prev => ({
@@ -119,11 +122,52 @@ export const AppProvider = ({ children, initialUser }: { children: ReactNode; in
         }
     }, [initialUser]);
 
+    // Firestore Sync
     useEffect(() => {
+        if (!initialUser) return;
+
+        const userDocRef = doc(db, 'users', initialUser.uid);
+        const unsubscribe = onSnapshot(userDocRef, (snapshot) => {
+            if (snapshot.exists()) {
+                const data = snapshot.data() as AppState;
+                // Simple equality check to prevent loops
+                // Note: In a real app, use deep comparison or a revision ID
+                if (JSON.stringify(data) !== JSON.stringify(state)) {
+                    isRemoteUpdate.current = true;
+                    setState(data);
+                }
+            } else {
+                // Migration: If doc doesn't exist, upload current local state
+                // This handles the "Phone to Cloud" first sync
+                setDoc(userDocRef, state).catch(console.error);
+            }
+        });
+
+        return () => unsubscribe();
+    }, [initialUser]);
+
+    // Save State (Local + Cloud)
+    useEffect(() => {
+        // Always save to local storage as backup/offline cache
         saveState(state);
+
+        // CSS/Dom effects
         document.documentElement.classList.toggle('dark', state.theme === 'dark');
         document.documentElement.dir = state.language === 'ar' ? 'rtl' : 'ltr';
-    }, [state]);
+
+        // Sync to Firestore
+        if (initialUser && !isRemoteUpdate.current) {
+            const userDocRef = doc(db, 'users', initialUser.uid);
+            // Debouncing could be added here if high frequency updates occur
+            setDoc(userDocRef, state).catch(e => console.error("Sync error:", e));
+        }
+
+        // Reset flag after render cycle
+        if (isRemoteUpdate.current) {
+            isRemoteUpdate.current = false;
+        }
+
+    }, [state, initialUser]);
 
     // Auto-delay overdue tasks
     useEffect(() => {
@@ -267,3 +311,4 @@ export const AppProvider = ({ children, initialUser }: { children: ReactNode; in
 
     return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 };
+

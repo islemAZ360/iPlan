@@ -81,13 +81,13 @@ const KanbanPage = () => {
         <div className="p-4 lg:p-6 h-full flex flex-col overflow-hidden">
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">{translate('kanban_title')}</h1>
 
-            <div className="flex-1 flex gap-4 lg:gap-6 overflow-x-auto overflow-y-hidden pb-4">
+            <div className="flex-1 flex gap-4 lg:gap-6 overflow-x-auto overflow-y-hidden pb-4 snap-x snap-mandatory">
                 {columns.map(col => {
                     const colTasks = getColumnTasks(col.id);
                     return (
                         <div
                             key={col.id}
-                            className="flex-1 min-w-[280px] flex flex-col rounded-2xl overflow-hidden"
+                            className="flex-1 min-w-[85vw] sm:min-w-[300px] lg:min-w-[320px] flex flex-col rounded-2xl overflow-hidden snap-center"
                             onDragOver={(e) => handleDragOver(e, col.id)}
                             onDrop={(e) => handleDrop(e, col.id)}
                             onDragLeave={() => setDragOverCol(null)}

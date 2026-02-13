@@ -129,7 +129,7 @@ const HomePage = () => {
                     </div>
 
                     {/* Calendar Grid */}
-                    <div className="grid grid-cols-7 auto-rows-fr bg-gray-100 dark:bg-gray-800 gap-px flex-1 overflow-y-auto">
+                    <div className="grid grid-cols-7 auto-rows-fr bg-gray-100 dark:bg-gray-800 gap-px flex-1 overflow-y-auto min-w-[600px] lg:min-w-0">
                         {days.map((date, idx) => {
                             if (!date) return <div key={`empty-${idx}`} className="bg-white dark:bg-gray-900 min-h-[80px] lg:min-h-[100px]" />;
 
