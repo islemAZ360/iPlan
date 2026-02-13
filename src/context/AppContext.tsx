@@ -122,6 +122,11 @@ export const AppProvider = ({ children, initialUser }: { children: ReactNode; in
         }
     }, [initialUser]);
 
+    // Helper to remove undefined values (Firestore doesn't like them)
+    const cleanData = (data: any) => {
+        return JSON.parse(JSON.stringify(data));
+    };
+
     // Firestore Sync
     useEffect(() => {
         if (!initialUser) return;
@@ -131,15 +136,13 @@ export const AppProvider = ({ children, initialUser }: { children: ReactNode; in
             if (snapshot.exists()) {
                 const data = snapshot.data() as AppState;
                 // Simple equality check to prevent loops
-                // Note: In a real app, use deep comparison or a revision ID
                 if (JSON.stringify(data) !== JSON.stringify(state)) {
                     isRemoteUpdate.current = true;
                     setState(data);
                 }
             } else {
                 // Migration: If doc doesn't exist, upload current local state
-                // This handles the "Phone to Cloud" first sync
-                setDoc(userDocRef, state).catch(console.error);
+                setDoc(userDocRef, cleanData(state)).catch(console.error);
             }
         });
 
@@ -158,8 +161,7 @@ export const AppProvider = ({ children, initialUser }: { children: ReactNode; in
         // Sync to Firestore
         if (initialUser && !isRemoteUpdate.current) {
             const userDocRef = doc(db, 'users', initialUser.uid);
-            // Debouncing could be added here if high frequency updates occur
-            setDoc(userDocRef, state).catch(e => console.error("Sync error:", e));
+            setDoc(userDocRef, cleanData(state)).catch(e => console.error("Sync error:", e));
         }
 
         // Reset flag after render cycle
@@ -260,11 +262,26 @@ export const AppProvider = ({ children, initialUser }: { children: ReactNode; in
         addTask: (t) => setState(prev => ({ ...prev, tasks: [...prev.tasks, t] })),
         updateTask: (t) => setState(prev => {
             const oldTask = prev.tasks.find(x => x.id === t.id);
-            let xpGain = 0;
-            if (t.status === 'completed' && oldTask?.status !== 'completed') {
-                xpGain = t.priority === 'high' ? XP_VALUES.completeHighPriority : XP_VALUES.completeTask;
+            let xpChange = 0;
+
+            // Check if status changed
+            if (oldTask) {
+                // Pending -> Completed (Add XP)
+                if (oldTask.status !== 'completed' && t.status === 'completed') {
+                    xpChange = t.priority === 'high' ? XP_VALUES.completeHighPriority : XP_VALUES.completeTask;
+                }
+                // Completed -> Pending (Subtract XP - undo)
+                else if (oldTask.status === 'completed' && t.status !== 'completed') {
+                    xpChange = -(t.priority === 'high' ? XP_VALUES.completeHighPriority : XP_VALUES.completeTask);
+                }
             }
-            const newState = { ...prev, tasks: prev.tasks.map(task => task.id === t.id ? t : task), xp: prev.xp + xpGain };
+
+            const newXp = Math.max(0, prev.xp + xpChange);
+            const newState = {
+                ...prev,
+                tasks: prev.tasks.map(task => task.id === t.id ? t : task),
+                xp: newXp
+            };
             newState.badges = checkBadges(newState);
             return newState;
         }),

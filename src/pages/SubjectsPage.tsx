@@ -50,7 +50,7 @@ const SubjectsPage = () => {
                     </div>
                     <div>
                         <label className="text-xs text-gray-500 dark:text-gray-400 font-bold mb-1.5 block uppercase tracking-wider">{translate('subject_color')}</label>
-                        <div className="flex items-center gap-1.5">
+                        <div className="flex items-center gap-1.5 flex-wrap">
                             {presetColors.map(c => (
                                 <button
                                     key={c}

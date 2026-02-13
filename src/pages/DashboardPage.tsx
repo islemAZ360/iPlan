@@ -42,7 +42,7 @@ const DashboardPage = () => {
                         <p className="text-white/50 text-xs font-bold uppercase tracking-widest mb-2">{greeting} 👋</p>
                         <h1 className="text-3xl lg:text-4xl font-extrabold mb-1 tracking-tight">{user.name}</h1>
                         <p className="text-white/60 text-sm font-medium">{translate('dashboard_subtitle')}</p>
-                        <div className="flex items-center gap-3 mt-5">
+                        <div className="flex items-center gap-3 mt-5 flex-wrap">
                             <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-xl px-3.5 py-2 border border-white/15 shadow-sm shadow-violet-500/10">
                                 <Zap className="w-4 h-4 text-yellow-300 drop-shadow-[0_0_4px_rgba(250,204,21,0.5)]" />
                                 <span className="text-sm font-bold">{translate('level')} {level}</span>

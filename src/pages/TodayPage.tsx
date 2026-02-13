@@ -14,11 +14,24 @@ const TodayPage = () => {
     const progress = todaysTasks.length > 0 ? Math.round((completedCount / todaysTasks.length) * 100) : 0;
 
     const toggleComplete = (task: Task) => {
-        updateTask({
-            ...task,
-            status: task.status === 'completed' ? 'pending' : 'completed',
-            completedAt: task.status === 'completed' ? undefined : new Date().toISOString(),
-        });
+        const isCompleted = task.status === 'completed';
+        const updates: Partial<Task> = {
+            status: isCompleted ? 'pending' : 'completed',
+        };
+
+        if (!isCompleted) {
+            updates.completedAt = new Date().toISOString();
+        } else {
+            // When unchecking, we don't set completedAt to undefined explicitly here
+            // because strict mode might complain, but AppContext sanitizes it now.
+            // We can just rely on the new state overwriting it, 
+            // but setting it to undefined is fine if AppContext cleans it.
+            // However, cleaner to just explicitly set what we want.
+            // For now, let's just stick to the previous logical flow but trust AppContext.
+            updates.completedAt = undefined;
+        }
+
+        updateTask({ ...task, ...updates });
     };
 
     const handleSaveEdit = (updatedData: Partial<Task>) => {
@@ -30,9 +43,6 @@ const TodayPage = () => {
 
     const priorityOrder = { high: 0, medium: 1, low: 2 };
     const sortedTasks = [...todaysTasks].sort((a, b) => {
-        // Completed tasks go to the end
-        if (a.status === 'completed' && b.status !== 'completed') return 1;
-        if (a.status !== 'completed' && b.status === 'completed') return -1;
         return (priorityOrder[a.priority || 'medium']) - (priorityOrder[b.priority || 'medium']);
     });
 
