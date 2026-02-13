@@ -38,47 +38,41 @@ const Loader = () => {
                     </defs>
                 </svg>
 
-                {/* Left Leg */}
+                {/* Left Leg (Webbed Flipper - Pushing) */}
                 <svg
                     className="legl"
-                    version="1.1"
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="20.69332"
-                    height="68.19944"
-                    viewBox="0,0,20.69332,68.19944"
+                    width="60"
+                    height="70"
+                    viewBox="0 0 60 70"
+                    style={{ overflow: 'visible', zIndex: 0 }}
                 >
-                    <g transform="translate(-201.44063,-235.75466)">
-                        <g strokeMiterlimit="10">
-                            <path
-                                d="M218.11971,301.20087c-2.20708,1.73229 -4.41416,0 -4.41416,0l-1.43017,-1.1437c-1.42954,-1.40829 -3.04351,-2.54728 -4.56954,-3.87927c-0.95183,-0.8308 -2.29837,-1.49883 -2.7652,-2.55433c-0.42378,-0.95815 0.14432,-2.02654 0.29355,-3.03399c0.41251,-2.78499 1.82164,-5.43386 2.41472,-8.22683c1.25895,-4.44509 2.73863,-8.98683 3.15318,-13.54796c0.22615,-2.4883 -0.21672,-5.0155 -0.00278,-7.50605c0.30636,-3.56649 1.24602,-7.10406 1.59992,-10.6738c0.29105,-2.93579 -0.00785,-5.9806 -0.00785,-8.93046c0,0 0,-2.44982 3.12129,-2.44982c3.12129,0 3.12129,2.44982 3.12129,2.44982c0,3.06839 0.28868,6.22201 -0.00786,9.27779c-0.34637,3.56935 -1.30115,7.10906 -1.59992,10.6738c-0.2103,2.50918 0.22586,5.05326 -0.00278,7.56284c-0.43159,4.7371 -1.94029,9.46317 -3.24651,14.07835c-0.47439,2.23403 -1.29927,4.31705 -2.05805,6.47156c-0.18628,0.52896 -0.1402,1.0974 -0.327,1.62624c-0.09463,0.26791 -0.64731,0.47816 -0.50641,0.73323c0.19122,0.34617 0.86423,0.3445 1.2346,0.58502c1.88637,1.22503 3.50777,2.79494 5.03,4.28305l0.96971,0.73991c0,0 2.20708,1.73229 0,3.46457z"
-                                fill="none"
-                                stroke="url(#orangeGrad)"
-                                strokeWidth="7"
-                                strokeLinecap="round"
-                            ></path>
-                        </g>
+                    <g transform="translate(10, 10)">
+                        <path
+                            d="M20,0 Q10,25 0,50 L15,60 L25,52 L35,60 L45,15 Z"
+                            fill="url(#orangeGrad)"
+                            stroke="#c2410c"
+                            strokeWidth="1"
+                            style={{ animation: 'waddle 1s infinite ease-in-out', transformOrigin: '20px 0px' }}
+                        />
                     </g>
                 </svg>
 
-                {/* Right Leg */}
+                {/* Right Leg (Webbed Flipper - Pushing) */}
                 <svg
                     className="legr"
-                    version="1.1"
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="41.02537"
-                    height="64.85502"
-                    viewBox="0,0,41.02537,64.85502"
+                    width="60"
+                    height="70"
+                    viewBox="0 0 60 70"
+                    style={{ overflow: 'visible', zIndex: 0 }}
                 >
-                    <g transform="translate(-241.54137,-218.44347)">
-                        <g strokeMiterlimit="10">
-                            <path
-                                d="M279.06674,279.42662c-2.27967,1.98991 -6.08116,0.58804 -6.08116,0.58804l-2.47264,-0.92915c-2.58799,-1.18826 -5.31176,-2.08831 -7.99917,-3.18902c-1.67622,-0.68654 -3.82471,-1.16116 -4.93147,-2.13229c-1.00468,-0.88156 -0.69132,-2.00318 -0.92827,-3.00935c-0.65501,-2.78142 0.12275,-5.56236 -0.287,-8.37565c-0.2181,-4.51941 -0.17458,-9.16283 -1.60696,-13.68334c-0.78143,-2.46614 -2.50162,-4.88125 -3.30086,-7.34796c-1.14452,-3.53236 -1.40387,-7.12078 -2.48433,-10.66266c-0.88858,-2.91287 -2.63779,-5.85389 -3.93351,-8.74177c0,0 -1.07608,-2.39835 3.22395,-2.81415c4.30003,-0.41581 2.41605,1.98254 2.41605,1.98254c1.34779,3.00392 3.13684,6.05282 4.06444,9.0839c1.09065,3.54049 1.33011,7.13302 2.48433,10.66266c0.81245,2.48448 2.5308,4.917 3.31813,7.40431c1.48619,4.69506 1.48366,9.52281 1.71137,14.21503c0.32776,2.25028 0.10631,4.39942 0.00736,6.60975c-0.02429,0.54266 0.28888,1.09302 0.26382,1.63563c-0.01269,0.27488 -0.68173,0.55435 -0.37558,0.78529c0.41549,0.31342 1.34191,0.22213 1.95781,0.40826c3.13684,0.94799 6.06014,2.26892 8.81088,3.52298l1.66093,0.59519c0,0 6.76155,1.40187 4.48187,3.39177z"
-                                fill="none"
-                                stroke="url(#orangeGrad)"
-                                strokeWidth="7"
-                                strokeLinecap="round"
-                            ></path>
-                        </g>
+                    <g transform="translate(10, 10)">
+                        <path
+                            d="M20,0 Q10,25 0,50 L15,60 L25,52 L35,60 L45,15 Z"
+                            fill="url(#orangeGrad)"
+                            stroke="#c2410c"
+                            strokeWidth="1"
+                            style={{ animation: 'waddle 1s infinite ease-in-out', animationDelay: '0.5s', transformOrigin: '20px 0px' }}
+                        />
                     </g>
                 </svg>
 
@@ -107,14 +101,48 @@ const Loader = () => {
                                     fill="url(#bellyGrad)"
                                     stroke="none"
                                 ></path>
-                                {/* Wing/Arm - Left */}
-                                <path
-                                    d="M216.22445,188.06994c0,0 1.02834,11.73245 -3.62335,21.11235c-4.65169,9.3799 -13.06183,10.03776 -13.06183,10.03776c0,0 7.0703,-3.03121 10.89231,-10.7381c4.34839,-8.76831 5.79288,-20.41201 5.79288,-20.41201z"
-                                    fill="url(#bodyGrad)"
-                                    stroke="#ffffff"
-                                    strokeWidth="2"
-                                    strokeLinecap="round"
-                                ></path>
+                                {/* Arms holding Large Orb (Heavy Object) */}
+                                <g className="orb-holder" style={{ animation: 'struggle 3s infinite ease-in-out' }}>
+                                    <defs>
+                                        <clipPath id="orbClip">
+                                            <circle cx="250" cy="200" r="45" />
+                                        </clipPath>
+                                        <radialGradient id="orbGlass" cx="30%" cy="30%" r="70%">
+                                            <stop offset="0%" stopColor="#fff" stopOpacity="0.4" />
+                                            <stop offset="100%" stopColor="#6366f1" stopOpacity="0.2" />
+                                        </radialGradient>
+                                    </defs>
+
+                                    {/* Rotating Orb Container */}
+                                    <g style={{ animation: 'roll 4s linear infinite', transformOrigin: '250px 200px' }}>
+                                        {/* Outer Rim */}
+                                        <circle cx="250" cy="200" r="47" fill="#1e293b" stroke="#a855f7" strokeWidth="1" />
+
+                                        {/* Photo - Centered in Orb */}
+                                        <image href="/FBprofile.png" x="205" y="155" width="90" height="90" preserveAspectRatio="xMidYMid slice" clipPath="url(#orbClip)" />
+
+                                        {/* Glass Overlay */}
+                                        <circle cx="250" cy="200" r="45" fill="url(#orbGlass)" />
+
+                                        {/* Highlight */}
+                                        <ellipse cx="235" cy="180" rx="15" ry="8" fill="#fff" opacity="0.4" transform="rotate(-45 235 180)" />
+                                    </g>
+
+                                    {/* Left Arm (Pushing) */}
+                                    <path
+                                        d="M208,185 Q190,210 215,245 L230,235 Q205,200 208,185 Z"
+                                        fill="url(#bodyGrad)"
+                                        stroke="#ffffff"
+                                        strokeWidth="1"
+                                    />
+                                    {/* Right Arm (Pushing) */}
+                                    <path
+                                        d="M292,185 Q310,210 285,245 L270,235 Q295,200 292,185 Z"
+                                        fill="url(#bodyGrad)"
+                                        stroke="#ffffff"
+                                        strokeWidth="1"
+                                    />
+                                </g>
                             </g>
                         </g>
                     </svg>
@@ -179,6 +207,14 @@ const Loader = () => {
                                 <ellipse cx="288" cy="128" rx="6" ry="4" fill="#f43f5e" opacity="0.3" filter="url(#glow)" />
                                 <ellipse cx="238" cy="138" rx="6" ry="4" fill="#f43f5e" opacity="0.3" filter="url(#glow)" />
 
+                                {/* Sound Waves (Left) */}
+                                <circle cx="194" cy="120" r="10" fill="none" stroke="#a855f7" strokeWidth="2" className="wave" style={{ animationDelay: '0s' }} />
+                                <circle cx="194" cy="120" r="10" fill="none" stroke="#6366f1" strokeWidth="2" className="wave" style={{ animationDelay: '0.5s' }} />
+
+                                {/* Sound Waves (Right) */}
+                                <circle cx="296" cy="120" r="10" fill="none" stroke="#a855f7" strokeWidth="2" className="wave" style={{ animationDelay: '0s' }} />
+                                <circle cx="296" cy="120" r="10" fill="none" stroke="#6366f1" strokeWidth="2" className="wave" style={{ animationDelay: '0.5s' }} />
+
                                 {/* Headphones Cups (Over ears) */}
                                 <rect x="188" y="105" width="12" height="30" rx="6" fill="url(#phoneGrad)" stroke="#fff" strokeWidth="1" />
                                 <rect x="290" y="105" width="12" height="30" rx="6" fill="url(#phoneGrad)" stroke="#fff" strokeWidth="1" />
@@ -200,6 +236,23 @@ const Loader = () => {
 
                             </g>
                         </g>
+                    </svg>
+                </div>
+
+                {/* Music Notes */}
+                <div className="note" style={{ left: '170px', top: '70px', animationDelay: '0s' }}>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="#c084fc">
+                        <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z" />
+                    </svg>
+                </div>
+                <div className="note" style={{ left: '230px', top: '50px', animationDelay: '0.6s' }}>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="#818cf8">
+                        <path d="M20 3h-9c-1.1 0-2 .9-2 2v10c0 .9-.6 1.7-1.4 1.9-.9.2-1.8-.4-1.8-1.4v-5h4V5h-6v10.5c0 2.5 2 4.5 4.5 4.5s4.5-2 4.5-4.5V6h6v4.5c0 2.5 2 4.5 4.5 4.5s4.5-2 4.5-4.5V5c0-1.1-.9-2-2-2z" />
+                    </svg>
+                </div>
+                <div className="note" style={{ left: '140px', top: '90px', animationDelay: '1.2s' }}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="#a855f7">
+                        <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z" />
                     </svg>
                 </div>
 
