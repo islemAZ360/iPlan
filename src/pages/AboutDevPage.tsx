@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, ChevronDown, ChevronUp } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import './AboutDevPage.css';
 
 const AboutDevPage = () => {
     const navigate = useNavigate();

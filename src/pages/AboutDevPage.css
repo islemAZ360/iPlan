@@ -1,0 +1,217 @@
+/* Social Tooltip Wrapper */
+.social-tooltip-container {
+    position: relative;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 17px;
+    z-index: 10;
+}
+
+/* Tooltip (Profile Card) */
+.tooltip {
+    position: absolute;
+    top: 0;
+    left: 100%;
+    /* Right of the icon */
+    margin-left: 15px;
+    /* Gap */
+    opacity: 0;
+    visibility: hidden;
+    transform: translateX(-20px) scale(0.9);
+    transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+    z-index: 20;
+    pointer-events: none;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    padding: 10px;
+    width: 200px;
+    color: #333;
+}
+
+.social-tooltip-container:hover .tooltip {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(0) scale(1);
+    pointer-events: auto;
+}
+
+/* Profile Content */
+.profile {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.user {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.img {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: #eee;
+    overflow: hidden;
+}
+
+.details {
+    display: flex;
+    flex-direction: column;
+}
+
+.name {
+    font-weight: 700;
+    font-size: 14px;
+}
+
+.username {
+    font-size: 12px;
+    color: #777;
+}
+
+.about {
+    font-size: 11px;
+    color: #555;
+    text-align: center;
+    border-top: 1px solid #eee;
+    padding-top: 5px;
+}
+
+/* Icon / Button (3D Layer) */
+.icon {
+    position: relative;
+    display: block;
+    width: 60px;
+    height: 60px;
+}
+
+.layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    transition: all 0.3s ease;
+    transform-style: preserve-3d;
+    transform: rotateX(25deg) rotateY(15deg) rotateZ(-15deg);
+}
+
+.social-tooltip-container:hover .layer {
+    transform: rotate(0);
+}
+
+.layer span {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.3s ease;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* Stacked layers effect */
+.layer span:nth-child(1) {
+    transform: translateZ(0px);
+    opacity: 0.2;
+}
+
+.layer span:nth-child(2) {
+    transform: translateZ(5px);
+    opacity: 0.4;
+}
+
+.layer span:nth-child(3) {
+    transform: translateZ(10px);
+    opacity: 0.6;
+}
+
+.layer span:nth-child(4) {
+    transform: translateZ(15px);
+    opacity: 0.8;
+}
+
+/* The SVG Container (Top Layer) */
+.layer span:last-child {
+    transform: translateZ(20px);
+    opacity: 1;
+    background: rgba(255, 255, 255, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+}
+
+/* Brand Colors on Hover */
+.telegram:hover .layer span:last-child {
+    background: #2da5e0;
+    color: white;
+}
+
+.telegram:hover .layer span:last-child svg {
+    fill: white;
+}
+
+.insta:hover .layer span:last-child {
+    background: radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%);
+    color: white;
+}
+
+.insta:hover .layer span:last-child svg {
+    fill: white;
+}
+
+.fb:hover .layer span:last-child {
+    background: #1877f2;
+    color: white;
+}
+
+.fb:hover .layer span:last-child svg {
+    fill: white;
+}
+
+/* Text Label */
+.text-label {
+    position: absolute;
+    bottom: -30px;
+    left: 50%;
+    transform: translateX(-50%) translateY(10px);
+    font-size: 12px;
+    font-weight: 600;
+    opacity: 0;
+    transition: all 0.3s ease;
+    color: white;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    white-space: nowrap;
+}
+
+.social-tooltip-container:hover .text-label {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+/* Toaster Animation & Styles */
+.tooltip-container-toaster {
+    position: relative;
+    display: inline-block;
+}
+
+.toasterGroup {
+    display: inline-block;
+    transition: transform 0.2s ease;
+}
+
+.active .toasterGroup {
+    transform: scale(0.95);
+}
+
+.active .lever {
+    transform: translateY(2px);
+}

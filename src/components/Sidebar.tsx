@@ -30,9 +30,7 @@ const Sidebar = () => {
         >
             {/* Logo */}
             <div className="flex items-center gap-3 px-4 h-16 border-b border-[rgba(139,92,246,0.15)] shrink-0">
-                <div className="w-8 h-8 rounded-tl-lg rounded-tr-sm rounded-br-lg rounded-bl-sm bg-gradient-to-br from-indigo-500 via-violet-500 to-fuchsia-500 flex items-center justify-center shadow-lg shadow-violet-500/30 shrink-0 transition-all duration-300 hover:scale-110 hover:shadow-violet-500/50">
-                    <Sparkles className="w-4 h-4 text-white" />
-                </div>
+                <img src="/icon.png" alt="iPlan" className="w-8 h-8 rounded-lg shadow-lg shadow-violet-500/30 shrink-0 transition-all duration-300 hover:scale-110 hover:shadow-violet-500/50" />
                 <div className="sidebar-label overflow-hidden whitespace-nowrap">
                     <span className="font-extrabold text-lg text-shimmer tracking-tight">iPlan</span>
                     <p className="text-[10px] text-violet-300/60 font-medium -mt-0.5">Productivity Hub</p>
