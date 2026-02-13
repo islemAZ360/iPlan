@@ -30,7 +30,7 @@ const AboutDevPage = () => {
             </button>
 
             {/* ---- SOCIAL LINKS — LEFT COLUMN ---- */}
-            <div className="fixed left-32 top-1/2 flex flex-col gap-40 z-40" style={{ transform: 'translateY(-50%) scale(0.8)' }}>
+            <div className="fixed left-2 lg:left-32 top-1/2 flex flex-col gap-20 lg:gap-40 z-40 -translate-y-1/2 scale-[0.45] lg:scale-[0.8] origin-left">
                 {/* Telegram (top) */}
                 <div className="social-tooltip-container telegram">
                     <div className="tooltip">
