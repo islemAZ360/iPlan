@@ -30,8 +30,6 @@ const AboutDevPage = () => {
                 <ArrowLeft className="w-6 h-6 text-white group-hover:-translate-x-1 transition-transform" />
             </button>
 
-            {/* ---- SOCIAL LINKS REMOVED AS REQUESTED ---- */}
-
             {/* ---- MAIN CONTENT (centered) ---- */}
             <div className="relative z-10 w-full flex flex-col items-center justify-end" style={{ minHeight: '100vh', paddingBottom: '40px' }}>
 
