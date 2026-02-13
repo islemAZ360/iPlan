@@ -75,6 +75,7 @@ const translations: Record<Language, TranslationKeys> = {
         great_job: 'Great job keeping up!',
         no_tasks_today: 'No tasks for today.',
         today_date: 'Today',
+        schedule_title: 'Schedule',
 
         // Auth
         welcome_back: 'Welcome Back',
@@ -240,6 +241,7 @@ const translations: Record<Language, TranslationKeys> = {
         great_job: 'عمل رائع!',
         no_tasks_today: 'لا مهام لليوم.',
         today_date: 'اليوم',
+        schedule_title: 'الجدول',
 
         welcome_back: 'مرحباً بعودتك',
         create_account: 'إنشاء حساب',
@@ -395,6 +397,7 @@ const translations: Record<Language, TranslationKeys> = {
         great_job: 'Отлично!',
         no_tasks_today: 'Задач нет.',
         today_date: 'Сегодня',
+        schedule_title: 'Расписание',
 
         welcome_back: 'С возвращением',
         create_account: 'Регистрация',

@@ -30,7 +30,7 @@ const AboutDevPage = () => {
             </button>
 
             {/* ---- SOCIAL LINKS — LEFT COLUMN ---- */}
-            <div className="fixed left-6 lg:left-32 top-1/2 flex flex-col gap-16 lg:gap-40 z-40 -translate-y-1/2 scale-[0.65] lg:scale-[0.8] origin-left">
+            <div className="fixed left-6 lg:left-32 top-1/2 flex flex-col gap-16 lg:gap-40 z-0 -translate-y-1/2 scale-[0.65] lg:scale-[0.8] origin-left">
                 {/* Telegram (top) */}
                 <div className="social-tooltip-container telegram">
                     <div className="tooltip">
@@ -138,7 +138,7 @@ const AboutDevPage = () => {
                         style={{
                             bottom: 'calc(100% - 22px)', // Overlap with toaster to look like it's inside
                             transform: 'translateX(-50%)',
-                            width: expanded ? '350px' : '120px',
+                            width: expanded ? 'min(85vw, 350px)' : '120px',
                             maxHeight: toastOut ? (expanded ? '500px' : '130px') : '0px',
                             opacity: toastOut ? 1 : 0,
                             overflow: 'hidden',
