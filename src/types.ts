@@ -26,7 +26,7 @@ export interface Task {
   subjectId: string;
   dueType: TaskDueType;
   dueDate: string | null;
-  status: 'pending' | 'completed' | 'delayed';
+  status: 'pending' | 'completed' | 'delayed' | 'in_progress';
   priority?: Priority;
   createdAt: string;
   completedAt?: string;

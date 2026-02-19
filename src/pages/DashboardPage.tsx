@@ -22,7 +22,7 @@ const DashboardPage = () => {
         .reduce((sum, s) => sum + s.duration, 0);
 
     const upcomingTasks = tasks
-        .filter(t => t.status === 'pending' && t.dueDate && t.dueDate >= todayStr)
+        .filter(t => (t.status === 'pending' || t.status === 'in_progress') && t.dueDate && t.dueDate >= todayStr)
         .sort((a, b) => (a.dueDate || '').localeCompare(b.dueDate || ''))
         .slice(0, 5);
 

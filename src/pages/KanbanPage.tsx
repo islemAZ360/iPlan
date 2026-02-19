@@ -6,7 +6,7 @@ import TaskCard from '../components/TaskCard';
 import TaskFormModal from '../components/TaskFormModal';
 import { Task } from '../types';
 
-type Column = 'pending' | 'delayed' | 'completed';
+type Column = 'pending' | 'in_progress' | 'completed';
 
 const KanbanPage = () => {
     const { tasks, subjects, updateTask, deleteTask, translate } = useApp();
@@ -22,7 +22,7 @@ const KanbanPage = () => {
             canvasBg: 'bg-blue-900',
         },
         {
-            id: 'delayed',
+            id: 'in_progress',
             title: translate('kanban_in_progress'),
             dotColor: 'bg-amber-500',
             canvasColors: [[245, 158, 11], [234, 88, 12]],

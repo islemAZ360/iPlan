@@ -106,6 +106,7 @@ export function calculateStreak(tasks: Task[]): number {
 export const AppProvider = ({ children, initialUser }: { children: ReactNode; initialUser: FirebaseUser | null }) => {
     const [state, setState] = useState<AppState>(loadState());
     const isRemoteUpdate = useRef(false);
+    const isDataLoadedFromCloud = useRef(false); // New ref to track initial sync
 
     // Initial User Setup
     useEffect(() => {
@@ -139,10 +140,17 @@ export const AppProvider = ({ children, initialUser }: { children: ReactNode; in
                 // Simple equality check to prevent loops
                 if (JSON.stringify(data) !== JSON.stringify(state)) {
                     isRemoteUpdate.current = true;
+                    // Mark as loaded from cloud so we can start syncing back
+                    isDataLoadedFromCloud.current = true;
                     setState(data);
+                } else {
+                    // Even if data is same, we are now in sync
+                    isDataLoadedFromCloud.current = true;
                 }
             } else {
                 // Migration: If doc doesn't exist, upload current local state
+                // In this case, we allow writing immediately
+                isDataLoadedFromCloud.current = true;
                 setDoc(userDocRef, cleanData(state)).catch(console.error);
             }
         });
@@ -160,7 +168,11 @@ export const AppProvider = ({ children, initialUser }: { children: ReactNode; in
         document.documentElement.dir = state.language === 'ar' ? 'rtl' : 'ltr';
 
         // Sync to Firestore
-        if (initialUser && !isRemoteUpdate.current) {
+        // Only sync if:
+        // 1. User is logged in
+        // 2. It's NOT a remote update (avoid loops)
+        // 3. We have already received the initial data from cloud (avoid overwriting cloud with stale local data)
+        if (initialUser && !isRemoteUpdate.current && isDataLoadedFromCloud.current) {
             const userDocRef = doc(db, 'users', initialUser.uid);
             setDoc(userDocRef, cleanData(state)).catch(e => console.error("Sync error:", e));
         }
@@ -175,15 +187,17 @@ export const AppProvider = ({ children, initialUser }: { children: ReactNode; in
     // Auto-delay overdue tasks
     useEffect(() => {
         const today = new Date().toISOString().split('T')[0];
-        if (state.tasks.some(t => t.dueDate && t.dueDate < today && t.status === 'pending')) {
+        const isOverdue = (t: Task) => t.dueDate && t.dueDate < today && (t.status === 'pending' || t.status === 'in_progress');
+
+        if (state.tasks.some(isOverdue)) {
             setState(prev => ({
                 ...prev,
                 tasks: prev.tasks.map(t =>
-                    (t.dueDate && t.dueDate < today && t.status === 'pending') ? { ...t, status: 'delayed' as const } : t
+                    isOverdue(t) ? { ...t, status: 'delayed' as const } : t
                 )
             }));
         }
-    }, []);
+    }, [state.tasks]);
 
     // Badge checker
     const checkBadges = useCallback((s: AppState): Badge[] => {
