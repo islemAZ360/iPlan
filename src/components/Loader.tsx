@@ -114,7 +114,7 @@ const Loader = () => {
                                     </defs>
 
                                     {/* Rotating Orb Container */}
-                                    <g style={{ animation: 'roll 4s linear infinite', transformOrigin: '250px 200px' }}>
+                                    <g style={{ transformOrigin: '250px 200px' }}>
                                         {/* Outer Rim */}
                                         <circle cx="250" cy="200" r="47" fill="#1e293b" stroke="#a855f7" strokeWidth="1" />
 
