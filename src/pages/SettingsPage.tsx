@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { BookOpen, Moon, Sun, LogOut, Camera, Mail, Calendar, User, Upload, Zap } from 'lucide-react';
+import { BookOpen, Moon, Sun, LogOut, Camera, Mail, Calendar, User, Upload, Zap, Send } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { Language } from '../types';
@@ -264,7 +264,27 @@ const SettingsPage = () => {
                         ))}
                     </div>
                 </div>
-                {/* Notification Test */}
+                {/* Notification Test */}                {/* Telegram Chat ID */}
+                <div className="py-6 border-b border-white/5 space-y-3">
+                    <div className="flex items-center gap-4">
+                        <div className="p-2.5 rounded-xl bg-blue-500/20 text-blue-400">
+                            <Send className="w-5 h-5" />
+                        </div>
+                        <div className="flex-1">
+                            <span className="text-gray-200 font-medium block">{translate('telegram_id')}</span>
+                            <span className="text-[10px] text-gray-400">{translate('telegram_desc')}</span>
+                        </div>
+                    </div>
+                    <div className="relative group/input">
+                        <input
+                            type="text"
+                            value={user.telegramChatId || ''}
+                            onChange={(e) => updateUser({ telegramChatId: e.target.value })}
+                            placeholder="e.g. 123456789"
+                            className="w-full px-4 py-2.5 rounded-xl border border-white/10 bg-white/5 text-white text-xs font-mono focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none transition-all duration-200"
+                        />
+                    </div>
+                </div>
                 <div className="pt-6">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">

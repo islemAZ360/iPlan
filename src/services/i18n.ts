@@ -48,10 +48,9 @@ const translations: Record<Language, TranslationKeys> = {
 
         // Achievements
         achievements_title: 'Achievements',
-        onesignal_id: 'OneSignal App ID',
-        onesignal_desc: 'Required for background notifications.',
-        onesignal_rest_key: 'OneSignal REST API Key',
-        onesignal_rest_desc: 'CRITICAL: Required for notifications to work when the site is CLOSED.',
+        telegram_id: 'Telegram Chat ID',
+        telegram_desc: 'Get your ID from @userinfobot to receive notifications.',
+        telegram_connect: 'Connect Telegram',
         total_completed: 'Total Completed',
         completed_today: 'Completed Today',
         streak: 'Streak',

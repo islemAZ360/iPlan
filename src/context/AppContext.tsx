@@ -185,51 +185,8 @@ export const AppProvider = ({ children, initialUser }: { children: ReactNode; in
         return () => unsubscribe();
     }, [initialUser]);
 
-    // --- BACKGROUND NOTIFICATIONS CONFIGURATION ---
-    const ONESIGNAL_APP_ID = "beb3002b-8f12-4951-ae51-719fe24ff9b5";
-    const ONESIGNAL_REST_KEY = state.user.oneSignalRestKey || "";
-    const [playerId, setPlayerId] = useState<string | null>(localStorage.getItem('onesignal_player_id'));
-
-    useEffect(() => {
-        const OneSignal = (window as any).OneSignal;
-        if (OneSignal) {
-            OneSignal.push(() => {
-                if (ONESIGNAL_APP_ID.includes("placeholder")) {
-                    console.log('OneSignal: App ID not configured.');
-                    return;
-                }
-                
-                // Initialize v16
-                OneSignal.init({
-                    appId: ONESIGNAL_APP_ID,
-                    allowLocalActionOnly: false,
-                    serviceWorkerParam: { scope: '/' },
-                    serviceWorkerPath: 'OneSignalSDKWorker.js',
-                }).then(() => {
-                    console.log("OneSignal Initialized.");
-                    
-                    // Capture Player ID
-                    const id = OneSignal.User.PushSubscription.id;
-                    if (id) {
-                        setPlayerId(id);
-                        localStorage.setItem('onesignal_player_id', id);
-                    }
-
-                    // Update ID on change
-                    OneSignal.User.PushSubscription.addEventListener("change", (event: any) => {
-                        if (event.current.id) {
-                            setPlayerId(event.current.id);
-                            localStorage.setItem('onesignal_player_id', event.current.id);
-                        }
-                    });
-
-                    if (Notification.permission !== 'granted') {
-                        OneSignal.Notifications.requestPermission();
-                    }
-                });
-            });
-        }
-    }, [ONESIGNAL_APP_ID]);
+    // --- BACKGROUND NOTIFICATIONS CONFIGURATION (TELEGRAM) ---
+    // No specific local keys needed for Telegram direct bridge
 
     // Save State (Local + Cloud)
     useEffect(() => {
@@ -419,10 +376,10 @@ export const AppProvider = ({ children, initialUser }: { children: ReactNode; in
         return () => clearInterval(interval);
     }, [state.notes, sendNotification, state.language]);
 
-    // --- CLOUD SCHEDULING LOGIC ---
-    const scheduleOneSignalPush = async (time: string, title: string): Promise<string | undefined> => {
-        if (!playerId) {
-            console.log("Scheduling skipped: Missing PlayerID");
+    // --- CLOUD SCHEDULING LOGIC (TELEGRAM) ---
+    const scheduleTelegramNotification = async (time: string, title: string): Promise<string | undefined> => {
+        if (!state.user.telegramChatId) {
+            console.log("Scheduling skipped: Missing Telegram Chat ID");
             return;
         }
 
@@ -431,33 +388,23 @@ export const AppProvider = ({ children, initialUser }: { children: ReactNode; in
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    playerId,
+                    chatId: state.user.telegramChatId,
                     time,
                     title
                 })
             });
             const data = await response.json();
-            return data.id;
+            return data.message_id?.toString(); // Telegram returns message_id
         } catch (error) {
-            console.error("OneSignal Proxy Scheduling Error:", error);
+            console.error("Telegram Proxy Scheduling Error:", error);
             return undefined;
         }
     };
 
-    const cancelOneSignalPush = async (notificationId: string) => {
-        if (!notificationId) return;
-        try {
-            await fetch('/api/schedule', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    action: 'cancel',
-                    notificationId
-                })
-            });
-        } catch (error) {
-            console.error("OneSignal Proxy Cancellation Error:", error);
-        }
+    const cancelTelegramNotification = async (notificationId: string) => {
+        // Telegram sendMessage API doesn't support 'future cancellation' easily without a true backend scheduler
+        // For now, we focus on the successful delivery of background notifications.
+        console.log("Cancellation not yet supported for Telegram direct bridge");
     };
 
     const value: AppContextType = {
@@ -491,45 +438,39 @@ export const AppProvider = ({ children, initialUser }: { children: ReactNode; in
         addNote: async (n) => {
             const updatedReminders = [...(n.reminders || [])];
             for (let i = 0; i < updatedReminders.length; i++) {
-                const nid = await scheduleOneSignalPush(updatedReminders[i].time, n.title);
-                if (nid) updatedReminders[i] = { ...updatedReminders[i], notificationId: nid };
+                const nid = await scheduleTelegramNotification(updatedReminders[i].time, n.title);
+                if (nid) updatedReminders[i].notificationId = nid;
             }
-            const finalNote = { ...n, reminders: updatedReminders };
+            
             setState(prev => {
-                const newState = { ...prev, notes: [...prev.notes, finalNote], xp: prev.xp + XP_VALUES.createNote };
+                const newState = { ...prev, notes: [...prev.notes, { ...n, reminders: updatedReminders }], xp: prev.xp + XP_VALUES.createNote };
                 newState.badges = checkBadges(newState);
                 return newState;
             });
         },
         updateNote: async (n) => {
-            // Check for new reminders to schedule
-            const oldNote = state.notes.find(x => x.id === n.id);
+            // Manage Cloud Schedule
+            const oldNote = state.notes.find(on => on.id === n.id);
             const updatedReminders = [...(n.reminders || [])];
-            
+
+            // Simple logic: If it's a new reminder or time changed, we'd reschedule
+            // For now, we mainly ensure manual "save" triggers the bridge.
             for (let i = 0; i < updatedReminders.length; i++) {
-                const rem = updatedReminders[i];
-                const oldRem = oldNote?.reminders?.find(r => r.id === rem.id);
-                
-                // If new or time changed
-                if (!oldRem || oldRem.time !== rem.time) {
-                    // Cancel old if exists
-                    if (oldRem?.notificationId) {
-                        cancelOneSignalPush(oldRem.notificationId);
-                    }
-                    // Schedule new
-                    const nid = await scheduleOneSignalPush(rem.time, n.title);
-                    if (nid) updatedReminders[i] = { ...rem, notificationId: nid };
+                if (!updatedReminders[i].notificationId) {
+                    const nid = await scheduleTelegramNotification(updatedReminders[i].time, n.title);
+                    if (nid) updatedReminders[i].notificationId = nid;
                 }
             }
 
-            const finalNote = { ...n, reminders: updatedReminders };
-            setState(prev => ({ ...prev, notes: prev.notes.map(note => note.id === n.id ? finalNote : note) }));
+            setState(prev => ({ ...prev, notes: prev.notes.map(note => note.id === n.id ? { ...n, reminders: updatedReminders } : note) }));
         },
-        deleteNote: (id) => {
+        deleteNote: async (id) => {
             const noteToDelete = state.notes.find(n => n.id === id);
-            noteToDelete?.reminders?.forEach(rem => {
-                if (rem.notificationId) cancelOneSignalPush(rem.notificationId);
-            });
+            if (noteToDelete?.reminders) {
+                for (const rem of noteToDelete.reminders) {
+                    if (rem.notificationId) await cancelTelegramNotification(rem.notificationId);
+                }
+            }
             setState(prev => ({ ...prev, notes: prev.notes.filter(n => n.id !== id) }));
         },
 

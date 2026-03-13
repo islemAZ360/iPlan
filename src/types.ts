@@ -9,8 +9,7 @@ export interface UserProfile {
   birthDate?: string;
   joinedAt: string;
   avatarUrl?: string;
-  oneSignalAppId?: string;
-  oneSignalRestKey?: string;
+  telegramChatId?: string;
 }
 
 export interface Subject {
