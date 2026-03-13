@@ -49,7 +49,9 @@ const translations: Record<Language, TranslationKeys> = {
         // Achievements
         achievements_title: 'Achievements',
         onesignal_id: 'OneSignal App ID',
-        onesignal_desc: 'Required for background notifications (when app is closed).',
+        onesignal_desc: 'Required for background notifications.',
+        onesignal_rest_key: 'OneSignal REST API Key',
+        onesignal_rest_desc: 'CRITICAL: Required for notifications to work when the site is CLOSED.',
         total_completed: 'Total Completed',
         completed_today: 'Completed Today',
         streak: 'Streak',
@@ -226,7 +228,9 @@ const translations: Record<Language, TranslationKeys> = {
 
         achievements_title: 'إنجازاتي',
         onesignal_id: 'معرف OneSignal (App ID)',
-        onesignal_desc: 'مطلوب لتشغيل التنبيهات حتى في حال إغلاق المتصفح أو التطبيق.',
+        onesignal_desc: 'مطلوب لتشغيل التنبيهات في الخلفية.',
+        onesignal_rest_key: 'مفتاح REST API (السرّي)',
+        onesignal_rest_desc: 'هام جداً: ضروري لكي تصلك التنبيهات والموقع مغلق تماماً.',
         total_completed: 'المهام المكتملة',
         completed_today: 'أنجزت اليوم',
         streak: 'أيام متتالية',
@@ -391,7 +395,9 @@ const translations: Record<Language, TranslationKeys> = {
 
         achievements_title: 'Достижения',
         onesignal_id: 'OneSignal App ID',
-        onesignal_desc: 'Требуется для уведомлений в фоновом режиме (когда приложение закрыто).',
+        onesignal_desc: 'Требуется для уведомлений в фоновом режиме.',
+        onesignal_rest_key: 'REST API Key',
+        onesignal_rest_desc: 'ВАЖНО: Необходимо для работы уведомлений при ЗАКРЫТОМ сайте.',
         total_completed: 'Выполнено',
         completed_today: 'Сегодня',
         streak: 'Серия',

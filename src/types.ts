@@ -10,6 +10,7 @@ export interface UserProfile {
   joinedAt: string;
   avatarUrl?: string;
   oneSignalAppId?: string;
+  oneSignalRestKey?: string;
 }
 
 export interface Subject {
@@ -37,6 +38,7 @@ export interface Task {
 export interface Reminder {
   id: string;
   time: string; // ISO string
+  notificationId?: string; // ID returned by OneSignal server
 }
 
 export interface Note {

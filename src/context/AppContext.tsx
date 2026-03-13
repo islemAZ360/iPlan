@@ -187,6 +187,8 @@ export const AppProvider = ({ children, initialUser }: { children: ReactNode; in
 
     // --- BACKGROUND NOTIFICATIONS CONFIGURATION ---
     const ONESIGNAL_APP_ID = state.user.oneSignalAppId || "placeholder";
+    const ONESIGNAL_REST_KEY = state.user.oneSignalRestKey || "";
+    const [playerId, setPlayerId] = useState<string | null>(localStorage.getItem('onesignal_player_id'));
 
     useEffect(() => {
         const OneSignal = (window as any).OneSignal;
@@ -197,17 +199,30 @@ export const AppProvider = ({ children, initialUser }: { children: ReactNode; in
                     return;
                 }
                 
-                // Initialize
+                // Initialize v16
                 OneSignal.init({
                     appId: ONESIGNAL_APP_ID,
-                    safari_web_id: "web.onesignal.auto.123456",
-                    notifyButton: { enable: true },
                     allowLocalActionOnly: false,
                     serviceWorkerParam: { scope: '/' },
                     serviceWorkerPath: 'OneSignalSDKWorker.js',
                 }).then(() => {
-                    console.log("OneSignal Initialized with ID:", ONESIGNAL_APP_ID);
-                    // Force permission prompt if not granted
+                    console.log("OneSignal Initialized.");
+                    
+                    // Capture Player ID
+                    const id = OneSignal.User.PushSubscription.id;
+                    if (id) {
+                        setPlayerId(id);
+                        localStorage.setItem('onesignal_player_id', id);
+                    }
+
+                    // Update ID on change
+                    OneSignal.User.PushSubscription.addEventListener("change", (event: any) => {
+                        if (event.current.id) {
+                            setPlayerId(event.current.id);
+                            localStorage.setItem('onesignal_player_id', event.current.id);
+                        }
+                    });
+
                     if (Notification.permission !== 'granted') {
                         OneSignal.Notifications.requestPermission();
                     }
@@ -404,6 +419,47 @@ export const AppProvider = ({ children, initialUser }: { children: ReactNode; in
         return () => clearInterval(interval);
     }, [state.notes, sendNotification, state.language]);
 
+    // --- CLOUD SCHEDULING LOGIC ---
+    const scheduleOneSignalPush = async (time: string, title: string): Promise<string | undefined> => {
+        if (!ONESIGNAL_APP_ID || !ONESIGNAL_REST_KEY || !playerId) return;
+
+        try {
+            const response = await fetch('https://onesignal.com/api/v1/notifications', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json; charset=utf-8',
+                    'Authorization': `Basic ${ONESIGNAL_REST_KEY}`
+                },
+                body: JSON.stringify({
+                    app_id: ONESIGNAL_APP_ID,
+                    contents: { en: title, ar: title },
+                    include_subscription_ids: [playerId],
+                    send_after: new Date(time).toUTCString(),
+                    data: { url: '/#/notes' }
+                })
+            });
+            const data = await response.json();
+            return data.id;
+        } catch (error) {
+            console.error("OneSignal Scheduling Error:", error);
+            return undefined;
+        }
+    };
+
+    const cancelOneSignalPush = async (notificationId: string) => {
+        if (!ONESIGNAL_APP_ID || !ONESIGNAL_REST_KEY || !notificationId) return;
+        try {
+            await fetch(`https://onesignal.com/api/v1/notifications/${notificationId}?app_id=${ONESIGNAL_APP_ID}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Basic ${ONESIGNAL_REST_KEY}`
+                }
+            });
+        } catch (error) {
+            console.error("OneSignal Cancellation Error:", error);
+        }
+    };
+
     const value: AppContextType = {
         ...state,
         setLanguage: (lang) => setState(prev => ({ ...prev, language: lang })),
@@ -417,38 +473,65 @@ export const AppProvider = ({ children, initialUser }: { children: ReactNode; in
         updateTask: (t) => setState(prev => {
             const oldTask = prev.tasks.find(x => x.id === t.id);
             let xpChange = 0;
-
-            // Check if status changed
             if (oldTask) {
-                // Pending -> Completed (Add XP)
                 if (oldTask.status !== 'completed' && t.status === 'completed') {
                     xpChange = t.priority === 'high' ? XP_VALUES.completeHighPriority : XP_VALUES.completeTask;
-                }
-                // Completed -> Pending (Subtract XP - undo)
-                else if (oldTask.status === 'completed' && t.status !== 'completed') {
+                } else if (oldTask.status === 'completed' && t.status !== 'completed') {
                     xpChange = -(t.priority === 'high' ? XP_VALUES.completeHighPriority : XP_VALUES.completeTask);
                 }
             }
-
             const newXp = Math.max(0, prev.xp + xpChange);
-            const newState = {
-                ...prev,
-                tasks: prev.tasks.map(task => task.id === t.id ? t : task),
-                xp: newXp
-            };
+            const newState = { ...prev, tasks: prev.tasks.map(task => task.id === t.id ? t : task), xp: newXp };
             newState.badges = checkBadges(newState);
             return newState;
         }),
         deleteTask: (id) => setState(prev => ({ ...prev, tasks: prev.tasks.filter(t => t.id !== id) })),
         updateUser: (u) => setState(prev => ({ ...prev, user: { ...prev.user, ...u } })),
 
-        addNote: (n) => setState(prev => {
-            const newState = { ...prev, notes: [...prev.notes, n], xp: prev.xp + XP_VALUES.createNote };
-            newState.badges = checkBadges(newState);
-            return newState;
-        }),
-        updateNote: (n) => setState(prev => ({ ...prev, notes: prev.notes.map(note => note.id === n.id ? n : note) })),
-        deleteNote: (id) => setState(prev => ({ ...prev, notes: prev.notes.filter(n => n.id !== id) })),
+        addNote: async (n) => {
+            const updatedReminders = [...(n.reminders || [])];
+            for (let i = 0; i < updatedReminders.length; i++) {
+                const nid = await scheduleOneSignalPush(updatedReminders[i].time, n.title);
+                if (nid) updatedReminders[i] = { ...updatedReminders[i], notificationId: nid };
+            }
+            const finalNote = { ...n, reminders: updatedReminders };
+            setState(prev => {
+                const newState = { ...prev, notes: [...prev.notes, finalNote], xp: prev.xp + XP_VALUES.createNote };
+                newState.badges = checkBadges(newState);
+                return newState;
+            });
+        },
+        updateNote: async (n) => {
+            // Check for new reminders to schedule
+            const oldNote = state.notes.find(x => x.id === n.id);
+            const updatedReminders = [...(n.reminders || [])];
+            
+            for (let i = 0; i < updatedReminders.length; i++) {
+                const rem = updatedReminders[i];
+                const oldRem = oldNote?.reminders?.find(r => r.id === rem.id);
+                
+                // If new or time changed
+                if (!oldRem || oldRem.time !== rem.time) {
+                    // Cancel old if exists
+                    if (oldRem?.notificationId) {
+                        cancelOneSignalPush(oldRem.notificationId);
+                    }
+                    // Schedule new
+                    const nid = await scheduleOneSignalPush(rem.time, n.title);
+                    if (nid) updatedReminders[i] = { ...rem, notificationId: nid };
+                }
+            }
+
+            const finalNote = { ...n, reminders: updatedReminders };
+            setState(prev => ({ ...prev, notes: prev.notes.map(note => note.id === n.id ? finalNote : note) }));
+        },
+        deleteNote: (id) => {
+            const noteToDelete = state.notes.find(n => n.id === id);
+            noteToDelete?.reminders?.forEach(rem => {
+                if (rem.notificationId) cancelOneSignalPush(rem.notificationId);
+            });
+            setState(prev => ({ ...prev, notes: prev.notes.filter(n => n.id !== id) }));
+        },
 
         addHabit: (h) => setState(prev => {
             const newState = { ...prev, habits: [...prev.habits, h] };
