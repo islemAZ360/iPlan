@@ -265,7 +265,7 @@ const SettingsPage = () => {
                     </div>
                 </div>
                 {/* Notification Test */}                {/* Telegram Chat ID */}
-                <div className="py-6 border-b border-white/5 space-y-3">
+                <div className="py-6 border-b border-white/5 space-y-4">
                     <div className="flex items-center gap-4">
                         <div className="p-2.5 rounded-xl bg-blue-500/20 text-blue-400">
                             <Send className="w-5 h-5" />
@@ -275,6 +275,7 @@ const SettingsPage = () => {
                             <span className="text-[10px] text-gray-400">{translate('telegram_desc')}</span>
                         </div>
                     </div>
+                    
                     <div className="relative group/input">
                         <input
                             type="text"
@@ -283,6 +284,49 @@ const SettingsPage = () => {
                             placeholder="e.g. 123456789"
                             className="w-full px-4 py-2.5 rounded-xl border border-white/10 bg-white/5 text-white text-xs font-mono focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none transition-all duration-200"
                         />
+                    </div>
+
+                    {/* Bot Link and Instructions */}
+                    <div className="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-3">
+                        <div className="flex items-center justify-between">
+                            <span className="text-[10px] font-bold text-primary-400 uppercase tracking-wider">
+                                {language === 'ar' ? 'خطوات التفعيل' : language === 'ru' ? 'Шаги активации' : 'Activation Steps'}
+                            </span>
+                            <a 
+                                href="https://t.me/iplan_robot" 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="text-[10px] bg-primary-500 hover:bg-primary-600 text-white px-3 py-1 rounded-full font-bold transition-all flex items-center gap-1"
+                            >
+                                <Send className="w-3 h-3" />
+                                @iplan_robot
+                            </a>
+                        </div>
+                        
+                        <div className="space-y-2">
+                            {language === 'ar' ? (
+                                <ol className="text-[11px] text-gray-400 space-y-1 ml-4 list-decimal">
+                                    <li>اضغط على زر <span className="text-white">@iplan_robot</span> بالأعلى</li>
+                                    <li>بعد فتح تلجرام، اضغط على زر <span className="text-white">Start</span></li>
+                                    <li>سيقوم البوت بإرسال رقم المعرف (ID) الخاص بك</li>
+                                    <li>قم بنسخ الرقم وضعه في الخانة بالأعلى</li>
+                                </ol>
+                            ) : language === 'ru' ? (
+                                <ol className="text-[11px] text-gray-400 space-y-1 ml-4 list-decimal">
+                                    <li>Нажмите кнопку <span className="text-white">@iplan_robot</span> выше</li>
+                                    <li>В Telegram нажмите кнопку <span className="text-white">Start</span></li>
+                                    <li>Бот пришлет вам ваш идентификатор (ID)</li>
+                                    <li>Скопируйте этот номер в поле выше</li>
+                                </ol>
+                            ) : (
+                                <ol className="text-[11px] text-gray-400 space-y-1 ml-4 list-decimal">
+                                    <li>Click the <span className="text-white">@iplan_robot</span> button above</li>
+                                    <li>In Telegram, press the <span className="text-white">Start</span> button</li>
+                                    <li>The bot will send you your unique ID</li>
+                                    <li>Copy and paste that ID into the field above</li>
+                                </ol>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>
