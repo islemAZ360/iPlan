@@ -33,6 +33,11 @@ export interface Task {
 }
 
 // --- Notes ---
+export interface Reminder {
+  id: string;
+  time: string; // ISO string
+}
+
 export interface Note {
   id: string;
   title: string;
@@ -42,6 +47,7 @@ export interface Note {
   createdAt: string;
   updatedAt: string;
   pinned?: boolean;
+  reminders?: Reminder[];
 }
 
 // --- Habits ---

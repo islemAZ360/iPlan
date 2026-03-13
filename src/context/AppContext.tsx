@@ -136,27 +136,74 @@ export const AppProvider = ({ children, initialUser }: { children: ReactNode; in
         const userDocRef = doc(db, 'users', initialUser.uid);
         const unsubscribe = onSnapshot(userDocRef, (snapshot) => {
             if (snapshot.exists()) {
-                const data = snapshot.data() as AppState;
-                // Simple equality check to prevent loops
-                if (JSON.stringify(data) !== JSON.stringify(state)) {
+                const cloudData = snapshot.data() as AppState;
+                
+                // --- Smart Merge Logic ---
+                setState(prev => {
+                    // If local is mostly empty but cloud has data, take cloud
+                    const isLocalEmpty = prev.tasks.length === 0 && prev.notes.length === 0 && prev.subjects.length === 0;
+                    if (isLocalEmpty) return cloudData;
+
+                    // If cloud is same as current, do nothing
+                    if (JSON.stringify(cloudData) === JSON.stringify(prev)) return prev;
+
+                    // Merge strategy: Union of arrays by ID
+                    const mergeById = (local: any[], cloud: any[]) => {
+                        const map = new Map();
+                        local.forEach(item => map.set(item.id, item));
+                        cloud.forEach(item => {
+                            // If cloud has newer or same item, overwrite local (assuming cloud is source of truth)
+                            map.set(item.id, item);
+                        });
+                        return Array.from(map.values());
+                    };
+
+                    const mergedState: AppState = {
+                        ...cloudData, // Use cloud settings (language, theme) as master
+                        user: { ...prev.user, ...cloudData.user },
+                        subjects: mergeById(prev.subjects, cloudData.subjects),
+                        tasks: mergeById(prev.tasks, cloudData.tasks),
+                        notes: mergeById(prev.notes, cloudData.notes),
+                        habits: mergeById(prev.habits, cloudData.habits),
+                        habitLogs: mergeById(prev.habitLogs, cloudData.habitLogs),
+                        pomodoroSessions: mergeById(prev.pomodoroSessions, cloudData.pomodoroSessions),
+                        badges: mergeById(prev.badges, cloudData.badges),
+                        xp: Math.max(prev.xp, cloudData.xp),
+                    };
+
                     isRemoteUpdate.current = true;
-                    // Mark as loaded from cloud so we can start syncing back
-                    isDataLoadedFromCloud.current = true;
-                    setState(data);
-                } else {
-                    // Even if data is same, we are now in sync
-                    isDataLoadedFromCloud.current = true;
-                }
-            } else {
-                // Migration: If doc doesn't exist, upload current local state
-                // In this case, we allow writing immediately
+                    return mergedState;
+                });
+                
                 isDataLoadedFromCloud.current = true;
-                setDoc(userDocRef, cleanData(state)).catch(console.error);
+            } else {
+                // If doc doesn't exist, upload current local state (if not empty)
+                isDataLoadedFromCloud.current = true;
+                const isLocalEmpty = state.tasks.length === 0 && state.notes.length === 0 && state.subjects.length === 0;
+                if (!isLocalEmpty) {
+                    setDoc(userDocRef, cleanData(state)).catch(console.error);
+                }
             }
         });
 
         return () => unsubscribe();
     }, [initialUser]);
+
+    // OneSignal Initialization
+    useEffect(() => {
+        const OneSignal = (window as any).OneSignal;
+        if (OneSignal) {
+            OneSignal.push(() => {
+                OneSignal.init({
+                    appId: "4f46e5-placeholder-id", // سيحتاج المستخدم لوضع المعرف الخاص به هنا
+                    safari_web_id: "web.onesignal.auto.123456",
+                    notifyButton: {
+                        enable: true,
+                    },
+                });
+            });
+        }
+    }, []);
 
     // Save State (Local + Cloud)
     useEffect(() => {
@@ -168,10 +215,6 @@ export const AppProvider = ({ children, initialUser }: { children: ReactNode; in
         document.documentElement.dir = state.language === 'ar' ? 'rtl' : 'ltr';
 
         // Sync to Firestore
-        // Only sync if:
-        // 1. User is logged in
-        // 2. It's NOT a remote update (avoid loops)
-        // 3. We have already received the initial data from cloud (avoid overwriting cloud with stale local data)
         if (initialUser && !isRemoteUpdate.current && isDataLoadedFromCloud.current) {
             const userDocRef = doc(db, 'users', initialUser.uid);
             setDoc(userDocRef, cleanData(state)).catch(e => console.error("Sync error:", e));
@@ -260,10 +303,34 @@ export const AppProvider = ({ children, initialUser }: { children: ReactNode; in
     }, []);
 
     const sendNotification = useCallback((title: string, body: string) => {
+        const OneSignal = (window as any).OneSignal;
+        if (OneSignal && OneSignal.notifications) {
+            // OneSignal logic (usually requires player ID on backend for targeting)
+            console.log('OneSignal Notification:', title, body);
+        }
+
         if ('Notification' in window && Notification.permission === 'granted') {
             new Notification(title, { body, icon: '/favicon.ico' });
         }
     }, []);
+
+    // Periodic reminder check (for demonstration when app is open)
+    useEffect(() => {
+        const interval = setInterval(() => {
+            const now = new Date();
+            state.notes.forEach(note => {
+                note.reminders?.forEach(rem => {
+                    const remTime = new Date(rem.time);
+                    const diff = remTime.getTime() - now.getTime();
+                    // If reminder is within next 1 minute (and not in past)
+                    if (diff > 0 && diff < 60000) {
+                        sendNotification(note.title, getTranslation(state.language, 'reminders'));
+                    }
+                });
+            });
+        }, 60000);
+        return () => clearInterval(interval);
+    }, [state.notes, sendNotification, state.language]);
 
     const value: AppContextType = {
         ...state,

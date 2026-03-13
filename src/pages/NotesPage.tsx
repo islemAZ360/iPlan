@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { Plus, Search, Pin, PinOff, X, FileText } from 'lucide-react';
+import { Plus, Search, Pin, PinOff, X, FileText, Bell, Calendar, Trash2 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
-import { Note } from '../types';
+import { Note, Reminder } from '../types';
 
 const COLORS = ['#6366f1', '#ec4899', '#f97316', '#22c55e', '#06b6d4', '#eab308', '#8b5cf6', '#ef4444'];
 
@@ -14,6 +14,8 @@ const NotesPage = () => {
     const [content, setContent] = useState('');
     const [color, setColor] = useState(COLORS[0]);
     const [subjectId, setSubjectId] = useState('');
+    const [reminders, setReminders] = useState<Reminder[]>([]);
+    const [newReminderTime, setNewReminderTime] = useState('');
 
     const filtered = notes
         .filter(n => !search || n.title.toLowerCase().includes(search.toLowerCase()) || n.content.toLowerCase().includes(search.toLowerCase()))
@@ -29,6 +31,7 @@ const NotesPage = () => {
         setContent(n.content);
         setColor(n.color);
         setSubjectId(n.subjectId || '');
+        setReminders(n.reminders || []);
         setIsCreating(true);
     };
 
@@ -38,6 +41,7 @@ const NotesPage = () => {
         setContent('');
         setColor(COLORS[Math.floor(Math.random() * COLORS.length)]);
         setSubjectId('');
+        setReminders([]);
         setIsCreating(true);
     };
 
@@ -45,11 +49,25 @@ const NotesPage = () => {
         if (!title) return;
         const now = new Date().toISOString();
         if (editing) {
-            updateNote({ ...editing, title, content, color, subjectId: subjectId || undefined, updatedAt: now });
+            updateNote({ ...editing, title, content, color, subjectId: subjectId || undefined, updatedAt: now, reminders });
         } else {
-            addNote({ id: Date.now().toString(), title, content, color, subjectId: subjectId || undefined, createdAt: now, updatedAt: now });
+            addNote({ id: Date.now().toString(), title, content, color, subjectId: subjectId || undefined, createdAt: now, updatedAt: now, reminders });
         }
         setIsCreating(false);
+    };
+
+    const addReminder = () => {
+        if (!newReminderTime) return;
+        const newRem: Reminder = {
+            id: Date.now().toString(),
+            time: new Date(newReminderTime).toISOString()
+        };
+        setReminders([...reminders, newRem]);
+        setNewReminderTime('');
+    };
+
+    const removeReminder = (id: string) => {
+        setReminders(reminders.filter(r => r.id !== id));
     };
 
     return (
@@ -97,11 +115,19 @@ const NotesPage = () => {
                                 </div>
                                 <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-4 whitespace-pre-wrap mb-3">{note.content}</p>
                                 <div className="flex items-center justify-between">
-                                    {sub && (
-                                        <span className="text-[10px] px-2 py-0.5 rounded-full font-bold text-white" style={{ backgroundColor: sub.color }}>
-                                            {sub.name}
-                                        </span>
-                                    )}
+                                    <div className="flex items-center gap-2">
+                                        {sub && (
+                                            <span className="text-[10px] px-2 py-0.5 rounded-full font-bold text-white" style={{ backgroundColor: sub.color }}>
+                                                {sub.name}
+                                            </span>
+                                        )}
+                                        {note.reminders && note.reminders.length > 0 && (
+                                            <div className="flex items-center gap-1 text-[10px] text-primary-500 font-bold">
+                                                <Bell className="w-3 h-3" />
+                                                <span>{note.reminders.length}</span>
+                                            </div>
+                                        )}
+                                    </div>
                                     <span className="text-[10px] text-gray-400">{new Date(note.updatedAt).toLocaleDateString()}</span>
                                 </div>
                             </div>
@@ -171,6 +197,53 @@ const NotesPage = () => {
                                     <option value="">{translate('select_subject_placeholder')}</option>
                                     {subjects.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                                 </select>
+                            </div>
+
+                            {/* Reminders Section */}
+                            <div className="pt-4 border-t border-gray-100 dark:border-gray-700 space-y-3">
+                                <div className="flex items-center justify-between">
+                                    <h4 className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                                        <Bell className="w-4 h-4 text-primary-500" />
+                                        {translate('reminders')}
+                                    </h4>
+                                </div>
+
+                                <div className="flex gap-2">
+                                    <input
+                                        type="datetime-local"
+                                        value={newReminderTime}
+                                        onChange={e => setNewReminderTime(e.target.value)}
+                                        className="flex-1 text-xs bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 outline-none dark:text-white"
+                                    />
+                                    <button
+                                        onClick={addReminder}
+                                        disabled={!newReminderTime}
+                                        className="p-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 disabled:opacity-50 transition-colors"
+                                    >
+                                        <Plus className="w-4 h-4" />
+                                    </button>
+                                </div>
+
+                                <div className="space-y-2 max-h-32 overflow-y-auto pr-1 custom-scrollbar">
+                                    {reminders.length === 0 ? (
+                                        <p className="text-xs text-gray-400 text-center py-2">{translate('no_reminders')}</p>
+                                    ) : (
+                                        reminders.sort((a,b) => a.time.localeCompare(b.time)).map(r => (
+                                            <div key={r.id} className="flex items-center justify-between bg-gray-50 dark:bg-gray-900 p-2 rounded-lg group">
+                                                <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-300">
+                                                    <Calendar className="w-3.5 h-3.5" />
+                                                    <span>{new Date(r.time).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}</span>
+                                                </div>
+                                                <button
+                                                    onClick={() => removeReminder(r.id)}
+                                                    className="p-1 text-gray-400 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+                                                >
+                                                    <Trash2 className="w-3.5 h-3.5" />
+                                                </button>
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
                             </div>
                             <button
                                 onClick={handleSave}

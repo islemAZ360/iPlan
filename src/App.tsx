@@ -32,14 +32,10 @@ export default function App() {
     );
   }
 
-  if (!user) {
-    return <LoginPage onLogin={() => { }} />;
-  }
-
   return (
     <AppProvider initialUser={user}>
       <HashRouter>
-        <Layout />
+        {user ? <Layout /> : <LoginPage onLogin={() => { }} />}
       </HashRouter>
     </AppProvider>
   );
