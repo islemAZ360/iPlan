@@ -153,12 +153,26 @@ export const AppProvider = ({ children, initialUser }: { children: ReactNode; in
 
                     const mergeById = (local: any[], cloud: any[]) => {
                         const map = new Map();
-                        // Put cloud first as base
-                        cloud.forEach(item => map.set(item.id, item));
-                        // Then local might overwrite if it has newer stuff (not implemented timestamps yet, so union)
-                        local.forEach(item => {
-                            if (!map.has(item.id)) {
-                                map.set(item.id, item);
+                        
+                        // Seed map with local stuff first
+                        local.forEach(item => map.set(item.id, item));
+
+                        // Compare with cloud stuff
+                        cloud.forEach(cloudItem => {
+                            const localItem = map.get(cloudItem.id);
+                            if (!localItem) {
+                                // New item from cloud
+                                map.set(cloudItem.id, cloudItem);
+                            } else {
+                                // Existing item: Compare timestamps
+                                const cloudTime = cloudItem.updatedAt || cloudItem.createdAt || cloudItem.completedAt || "";
+                                const localTime = localItem.updatedAt || localItem.createdAt || localItem.completedAt || "";
+                                
+                                // Cloud wins if it's newer
+                                if (cloudTime >= localTime) {
+                                    map.set(cloudItem.id, cloudItem);
+                                }
+                                // Else local wins (already in map)
                             }
                         });
                         return Array.from(map.values());
@@ -330,50 +344,30 @@ export const AppProvider = ({ children, initialUser }: { children: ReactNode; in
     const sendNotification = useCallback((title: string, body: string) => {
         console.log('Attempting to send notification:', { title, body });
         
-        // 1. Try Native Notification first (simplest)
-        if (!('Notification' in window)) {
-            console.warn('This browser does not support notifications.');
-            return;
-        }
+        // 1. Dispatch a custom event for "In-App Toast" (Guaranteed visual)
+        const toastEvent = new CustomEvent('app-toast', { detail: { title, body } });
+        window.dispatchEvent(toastEvent);
 
-        if (Notification.permission === 'granted') {
-            try {
-                const n = new Notification(title, { 
-                    body, 
+        if (!('Notification' in window)) return;
+
+        // 2. Try Service Worker first (More reliable for OS display)
+        if (Notification.permission === 'granted' && 'serviceWorker' in navigator) {
+            navigator.serviceWorker.ready.then(registration => {
+                registration.showNotification(title, {
+                    body,
                     icon: '/icon.png',
                     badge: '/icon.png',
-                    vibrate: [200, 100, 200]
-                } as any);
-                console.log('Native notification sent successfully.');
-                
-                // Audio feedback for testing
-                const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3');
-                audio.play().catch(() => {});
-            } catch (e) {
-                console.warn('Native notification failed, trying Service Worker...', e);
-                if ('serviceWorker' in navigator) {
-                    navigator.serviceWorker.ready.then(registration => {
-                        registration.showNotification(title, {
-                            body,
-                            icon: '/icon.png',
-                            vibrate: [200, 100, 200]
-                        } as any);
-                    }).catch(swErr => console.error('Service Worker notification failed:', swErr));
-                }
-            }
-        } else {
-            console.warn('Notification permission not granted. Current state:', Notification.permission);
-        }
-
-        // 2. OneSignal (Modern SDK)
-        const OneSignal = (window as any).OneSignal;
-        if (OneSignal && OneSignal.Notifications) {
-            try {
-                // OneSignal handles background better if initialized
-                console.log('OneSignal detected, (background sync managed by OneSignal)');
-            } catch (e) {
-                console.error('OneSignal error:', e);
-            }
+                    tag: 'iplan-reminder',
+                    renotify: true,
+                    vibrate: [100, 50, 100]
+                } as any).catch(err => {
+                    console.warn('SW notification failed, falling back to native...', err);
+                    new Notification(title, { body, icon: '/icon.png' });
+                });
+            });
+        } else if (Notification.permission === 'granted') {
+            // Native fallback
+            new Notification(title, { body, icon: '/icon.png' });
         }
     }, []);
 

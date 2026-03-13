@@ -4,6 +4,7 @@ import { Menu, Zap } from 'lucide-react';
 import Sidebar from './Sidebar';
 import FocusMode from './FocusMode';
 import { BackgroundBeamsWithCollision } from './ui/background-beams-with-collision';
+import Toast from './Toast';
 import { useApp } from '../context/AppContext';
 import DashboardPage from '../pages/DashboardPage';
 import HomePage from '../pages/HomePage';
@@ -86,6 +87,7 @@ const Layout = () => {
             </div>
 
             <FocusMode isOpen={focusMode} onClose={() => setFocusMode(false)} translate={translate} />
+            <Toast />
         </>
     );
 };
