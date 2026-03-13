@@ -193,14 +193,24 @@ export const AppProvider = ({ children, initialUser }: { children: ReactNode; in
         if (OneSignal) {
             OneSignal.push(() => {
                 if (ONESIGNAL_APP_ID.includes("placeholder")) {
-                    console.log('OneSignal: App ID not configured in settings, skipping initialization.');
+                    console.log('OneSignal: App ID not configured.');
                     return;
                 }
+                
+                // Initialize
                 OneSignal.init({
                     appId: ONESIGNAL_APP_ID,
                     safari_web_id: "web.onesignal.auto.123456",
                     notifyButton: { enable: true },
-                    allowLocalActionOnly: false // Allows global push
+                    allowLocalActionOnly: false,
+                    serviceWorkerParam: { scope: '/' },
+                    serviceWorkerPath: 'OneSignalSDKWorker.js',
+                }).then(() => {
+                    console.log("OneSignal Initialized with ID:", ONESIGNAL_APP_ID);
+                    // Force permission prompt if not granted
+                    if (Notification.permission !== 'granted') {
+                        OneSignal.Notifications.requestPermission();
+                    }
                 });
             });
         }
