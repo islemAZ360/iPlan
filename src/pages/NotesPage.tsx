@@ -1,9 +1,49 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Plus, Search, Pin, PinOff, X, FileText, Bell, Calendar, Trash2 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { Note, Reminder } from '../types';
 
 const COLORS = ['#6366f1', '#ec4899', '#f97316', '#22c55e', '#06b6d4', '#eab308', '#8b5cf6', '#ef4444'];
+
+const ReminderCountdown = ({ time, language }: { time: string, language: string }) => {
+    const [timeLeft, setTimeLeft] = useState('');
+
+    useEffect(() => {
+        const update = () => {
+            const now = new Date().getTime();
+            const target = new Date(time).getTime();
+            const diff = target - now;
+
+            if (diff <= 0) {
+                setTimeLeft(language === 'ar' ? 'انتهى' : 'Expired');
+                return;
+            }
+
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const secs = Math.floor((diff % (1000 * 60)) / 1000);
+
+            if (language === 'ar') {
+                if (days > 0) setTimeLeft(`باقي ${days}ي ${hours}س`);
+                else if (hours > 0) setTimeLeft(`باقي ${hours}س ${mins}د`);
+                else if (mins > 0) setTimeLeft(`باقي ${mins}د ${secs}ث`);
+                else setTimeLeft(`باقي ${secs}ث`);
+            } else {
+                if (days > 0) setTimeLeft(`${days}d ${hours}h left`);
+                else if (hours > 0) setTimeLeft(`${hours}h ${mins}m left`);
+                else if (mins > 0) setTimeLeft(`${mins}m ${secs}s left`);
+                else setTimeLeft(`${secs}s left`);
+            }
+        };
+
+        update();
+        const interval = setInterval(update, 1000);
+        return () => clearInterval(interval);
+    }, [time, language]);
+
+    return <span className="text-[10px] font-bold text-orange-500 animate-pulse">{timeLeft}</span>;
+};
 
 const NotesPage = () => {
     const { notes, subjects, addNote, updateNote, deleteNote, translate } = useApp();
@@ -246,6 +286,7 @@ const NotesPage = () => {
                                                 <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-300">
                                                     <Calendar className="w-3.5 h-3.5" />
                                                     <span>{new Date(r.time).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}</span>
+                                                    <ReminderCountdown time={r.time} language={useApp().language} />
                                                 </div>
                                                 <button
                                                     onClick={() => removeReminder(r.id)}

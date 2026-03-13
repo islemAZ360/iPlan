@@ -185,27 +185,26 @@ export const AppProvider = ({ children, initialUser }: { children: ReactNode; in
         return () => unsubscribe();
     }, [initialUser]);
 
-    // OneSignal Initialization
+    // --- BACKGROUND NOTIFICATIONS CONFIGURATION ---
+    const ONESIGNAL_APP_ID = state.user.oneSignalAppId || "placeholder";
+
     useEffect(() => {
         const OneSignal = (window as any).OneSignal;
         if (OneSignal) {
             OneSignal.push(() => {
-                const appId = "4f46e5-placeholder-id";
-                // Skip init if it's a placeholder to avoid breaking other scripts
-                if (appId.includes("placeholder")) {
-                    console.log('OneSignal: Placeholder ID detected, skipping initialization.');
+                if (ONESIGNAL_APP_ID.includes("placeholder")) {
+                    console.log('OneSignal: App ID not configured in settings, skipping initialization.');
                     return;
                 }
                 OneSignal.init({
-                    appId: appId,
+                    appId: ONESIGNAL_APP_ID,
                     safari_web_id: "web.onesignal.auto.123456",
-                    notifyButton: {
-                        enable: true,
-                    },
+                    notifyButton: { enable: true },
+                    allowLocalActionOnly: false // Allows global push
                 });
             });
         }
-    }, []);
+    }, [ONESIGNAL_APP_ID]);
 
     // Save State (Local + Cloud)
     useEffect(() => {

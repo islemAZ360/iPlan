@@ -9,6 +9,7 @@ export interface UserProfile {
   birthDate?: string;
   joinedAt: string;
   avatarUrl?: string;
+  oneSignalAppId?: string;
 }
 
 export interface Subject {

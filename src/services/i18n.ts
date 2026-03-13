@@ -48,6 +48,8 @@ const translations: Record<Language, TranslationKeys> = {
 
         // Achievements
         achievements_title: 'Achievements',
+        onesignal_id: 'OneSignal App ID',
+        onesignal_desc: 'Required for background notifications (when app is closed).',
         total_completed: 'Total Completed',
         completed_today: 'Completed Today',
         streak: 'Streak',
@@ -223,6 +225,8 @@ const translations: Record<Language, TranslationKeys> = {
         delete_subject_confirm: 'حذف المادة وكل مهامها؟',
 
         achievements_title: 'إنجازاتي',
+        onesignal_id: 'معرف OneSignal (App ID)',
+        onesignal_desc: 'مطلوب لتشغيل التنبيهات حتى في حال إغلاق المتصفح أو التطبيق.',
         total_completed: 'المهام المكتملة',
         completed_today: 'أنجزت اليوم',
         streak: 'أيام متتالية',
@@ -386,6 +390,8 @@ const translations: Record<Language, TranslationKeys> = {
         delete_subject_confirm: 'Удалить предмет и задачи?',
 
         achievements_title: 'Достижения',
+        onesignal_id: 'OneSignal App ID',
+        onesignal_desc: 'Требуется для уведомлений в фоновом режиме (когда приложение закрыто).',
         total_completed: 'Выполнено',
         completed_today: 'Сегодня',
         streak: 'Серия',
