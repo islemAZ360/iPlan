@@ -10,7 +10,7 @@ import { auth } from '../firebase';
 
 const SettingsPage = () => {
     const navigate = useNavigate();
-    const { user, updateUser, language, setLanguage, theme, setTheme, translate, logout } = useApp();
+    const { user, updateUser, language, setLanguage, theme, setTheme, translate, logout, sendNotification, testTelegram } = useApp();
     const [uploading, setUploading] = useState(false);
     const [newEmail, setNewEmail] = useState('');
     const [isEditingEmail, setIsEditingEmail] = useState(false);

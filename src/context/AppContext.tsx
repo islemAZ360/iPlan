@@ -469,7 +469,8 @@ export const AppProvider = ({ children, initialUser }: { children: ReactNode; in
             setState(prev => ({ ...prev, notes: prev.notes.filter(n => n.id !== id) }));
         },
         testTelegram: async (title: string, body: string) => {
-            return await scheduleTelegramNotification(new Date().toISOString(), title);
+            const result = await scheduleTelegramNotification(new Date().toISOString(), title);
+            return !!result;
         },
 
         addHabit: (h) => setState(prev => {

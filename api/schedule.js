@@ -10,14 +10,21 @@ export default async function handler(req, res) {
     const body = req.body;
 
     // --- CASE 1: Incoming from Telegram (Webhook) ---
-    if (body.message) {
-        const chatId = body.message.chat.id;
-        const text = body.message.text || "";
+    if (body && body.message) {
+        try {
+            const chatId = body.message.chat.id;
+            const text = body.message.text || "";
 
-        console.log("Telegram Webhook received:", { chatId, text });
+            console.log("Telegram Webhook received for ChatID:", chatId);
 
-        if (text.startsWith('/start')) {
-            const reply = `مرحباً بك في iPlan! 🚀\n\nمعرفك هو: \`${chatId}\`\n\nقم بنسخه ووضعه في إعدادات الموقع لتفعيل التنبيهات.`;
+            let reply = "";
+            if (text.startsWith('/start')) {
+                reply = `مرحباً بك في iPlan! 🚀\n\nمعرفك هو: \`${chatId}\`\n\nقم بنسخه ووضعه في إعدادات الموقع لتفعيل التنبيهات.`;
+            } else {
+                reply = `معرفك الخاص في iPlan هو: \`${chatId}\``;
+            }
+
+            // Fire and forget send message to Telegram or await for log
             await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -27,23 +34,17 @@ export default async function handler(req, res) {
                     parse_mode: 'Markdown'
                 })
             });
-        } else {
-            const reply = `معرفك الخاص هو: \`${chatId}\`\nاستخدمه في إعدادات iPlan.`;
-            await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    chat_id: chatId,
-                    text: reply,
-                    parse_mode: 'Markdown'
-                })
-            });
+
+            return res.status(200).json({ ok: true });
+        } catch (webhookError) {
+            console.error("Webhook Logic Error:", webhookError);
+            // Always return 200 to Telegram to stop retries
+            return res.status(200).json({ error: "Logged" });
         }
-        return res.status(200).json({ ok: true });
     }
 
-    // --- CASE 2: Incoming from Frontend (Notification Bridge) ---
-    const { time, title, chatId } = body;
+    // --- CASE 2: Incoming from Frontend ---
+    const { time, title, chatId } = body || {};
 
     console.log("Incoming Frontend Request:", { chatId, title });
 
