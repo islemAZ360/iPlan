@@ -285,34 +285,6 @@ const SettingsPage = () => {
                         />
                     </div>
                 </div>
-                <div className="pt-6">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                            <div className="p-2.5 rounded-xl bg-yellow-500/20 text-yellow-500">
-                                <Zap className="w-5 h-5" />
-                            </div>
-                            <div>
-                                <span className="text-gray-200 font-medium block">إشعار تجريبي (Test)</span>
-                                <span className="text-[10px] text-gray-500">اختبر وصول التنبيهات لهاتفك الآن</span>
-                            </div>
-                        </div>
-                        <button
-                            onClick={async () => {
-                                if (user.telegramChatId) {
-                                    const res = await testTelegram("iPlan Test", "هذا إشعار تجريبي للتأكد من ربط تلجرام بنجاح!");
-                                    if (res) alert("تم إرسال إشعار تجريبي لتلجرام!");
-                                    else alert("فشل إرسال الإشعار. تأكد من إعدادات البوت والـ Id");
-                                } else {
-                                    sendNotification("اختبار المتصفح", "هذا إشعار تجريبي من المتصفح. قم بإدخال Telegram ID لتجريب تنبيهات الهاتف.");
-                                }
-                            }}
-                            id="test-notify-btn"
-                            className="px-4 py-2 rounded-xl bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-500 text-xs font-medium border border-yellow-500/20 transition-all duration-200"
-                        >
-                            {translate('test')}
-                        </button>
-                    </div>
-                </div>
             </div>
 
             {/* About Developer Button */}

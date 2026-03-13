@@ -364,13 +364,14 @@ export const AppProvider = ({ children, initialUser }: { children: ReactNode; in
                     const remTime = new Date(rem.time).getTime();
                     const diff = remTime - nowTime;
                     
-                    // Trigger if it was supposed to happen in the last 35 seconds 
-                    // (to catch up if interval was throttled)
-                    if (diff <= 0 && diff > -35000) {
-                        // We need a way to mark reminder as "sent" locally to avoid double triggers
-                        // For now we rely on the narrow window
-                        sendNotification(note.title, getTranslation(state.language, 'reminders'));
-                    }
+                        // Trigger if it was supposed to happen in the last 35 seconds 
+                        // (to catch up if interval was throttled)
+                        if (diff <= 0 && diff > -35000) {
+                            sendNotification(note.title, getTranslation(state.language, 'reminders'));
+                            if (state.user.telegramChatId) {
+                                sendTelegramMessage(rem.time, note.title, 'alert');
+                            }
+                        }
                 });
             });
         }, 30000);
@@ -378,7 +379,7 @@ export const AppProvider = ({ children, initialUser }: { children: ReactNode; in
     }, [state.notes, sendNotification, state.language]);
 
     // --- CLOUD SCHEDULING LOGIC (TELEGRAM) ---
-    const scheduleTelegramNotification = async (time: string, title: string): Promise<string | undefined> => {
+    const sendTelegramMessage = async (time: string, title: string, type: 'confirmation' | 'alert' = 'alert'): Promise<string | undefined> => {
         if (!state.user.telegramChatId) {
             console.log("Scheduling skipped: Missing Telegram Chat ID");
             return;
@@ -391,7 +392,9 @@ export const AppProvider = ({ children, initialUser }: { children: ReactNode; in
                 body: JSON.stringify({
                     chatId: state.user.telegramChatId,
                     time,
-                    title
+                    title,
+                    lang: state.language,
+                    type
                 })
             });
             const data = await response.json();
@@ -439,7 +442,7 @@ export const AppProvider = ({ children, initialUser }: { children: ReactNode; in
         addNote: async (n) => {
             const updatedReminders = [...(n.reminders || [])];
             for (let i = 0; i < updatedReminders.length; i++) {
-                const nid = await scheduleTelegramNotification(updatedReminders[i].time, n.title);
+                const nid = await sendTelegramMessage(updatedReminders[i].time, n.title, 'confirmation');
                 if (nid) updatedReminders[i].notificationId = nid;
             }
             
@@ -453,7 +456,7 @@ export const AppProvider = ({ children, initialUser }: { children: ReactNode; in
             const updatedReminders = [...(n.reminders || [])];
             for (let i = 0; i < updatedReminders.length; i++) {
                 if (!updatedReminders[i].notificationId) {
-                    const nid = await scheduleTelegramNotification(updatedReminders[i].time, n.title);
+                    const nid = await sendTelegramMessage(updatedReminders[i].time, n.title, 'confirmation');
                     if (nid) updatedReminders[i].notificationId = nid;
                 }
             }
@@ -469,7 +472,7 @@ export const AppProvider = ({ children, initialUser }: { children: ReactNode; in
             setState(prev => ({ ...prev, notes: prev.notes.filter(n => n.id !== id) }));
         },
         testTelegram: async (title: string, body: string) => {
-            const result = await scheduleTelegramNotification(new Date().toISOString(), title);
+            const result = await sendTelegramMessage(new Date().toISOString(), title, 'alert');
             return !!result;
         },
 
