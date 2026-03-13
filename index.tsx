@@ -13,3 +13,12 @@ root.render(
     <App />
   </React.StrictMode>
 );
+
+// Register Service Worker for PWA & Native Notifications
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/OneSignalSDKWorker.js')
+      .then(reg => console.log('Service Worker registered with scope:', reg.scope))
+      .catch(err => console.error('Service Worker registration failed:', err));
+  });
+}

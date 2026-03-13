@@ -168,11 +168,11 @@ export const AppProvider = ({ children, initialUser }: { children: ReactNode; in
                                 const cloudTime = cloudItem.updatedAt || cloudItem.createdAt || cloudItem.completedAt || "";
                                 const localTime = localItem.updatedAt || localItem.createdAt || localItem.completedAt || "";
                                 
-                                // Cloud wins if it's newer
-                                if (cloudTime >= localTime) {
+                                // Cloud wins ONLY if it is strictly newer
+                                if (cloudTime > localTime) {
                                     map.set(cloudItem.id, cloudItem);
                                 }
-                                // Else local wins (already in map)
+                                // If equal or cloud is older, local wins (keep localItem in map)
                             }
                         });
                         return Array.from(map.values());
@@ -245,7 +245,16 @@ export const AppProvider = ({ children, initialUser }: { children: ReactNode; in
         // Sync to Firestore
         if (initialUser && !isRemoteUpdate.current && isDataLoadedFromCloud.current) {
             const userDocRef = doc(db, 'users', initialUser.uid);
-            setDoc(userDocRef, cleanData(state)).catch(e => console.error("Sync error:", e));
+            setDoc(userDocRef, cleanData(state))
+                .then(() => {
+                    console.log("Cloud sync successful");
+                    // We don't want to toast on EVERY save as it might be annoying, 
+                    // but we can send a silent log or a toast for critical actions like notes.
+                })
+                .catch(e => {
+                    console.error("Sync error:", e);
+                    sendNotification("Sync Error", "Could not save to cloud. Will retry later.");
+                });
         }
 
         // Reset flag after render cycle
@@ -341,16 +350,16 @@ export const AppProvider = ({ children, initialUser }: { children: ReactNode; in
         }
     }, []);
 
-    const sendNotification = useCallback((title: string, body: string) => {
-        console.log('Attempting to send notification:', { title, body });
+    const sendNotification = useCallback((title: string, body: string, data?: any) => {
+        console.log('Pushing notification:', { title, body });
         
-        // 1. Dispatch a custom event for "In-App Toast" (Guaranteed visual)
+        // 1. Toast (Visual Fallback)
         const toastEvent = new CustomEvent('app-toast', { detail: { title, body } });
         window.dispatchEvent(toastEvent);
 
         if (!('Notification' in window)) return;
 
-        // 2. Try Service Worker first (More reliable for OS display)
+        // 2. Service Worker (Native Feel)
         if (Notification.permission === 'granted' && 'serviceWorker' in navigator) {
             navigator.serviceWorker.ready.then(registration => {
                 registration.showNotification(title, {
@@ -359,14 +368,14 @@ export const AppProvider = ({ children, initialUser }: { children: ReactNode; in
                     badge: '/icon.png',
                     tag: 'iplan-reminder',
                     renotify: true,
-                    vibrate: [100, 50, 100]
+                    data: { url: window.location.origin + '/dashboard', ...data }, // Deep linking
+                    vibrate: [100, 50, 100],
+                    requireInteraction: true // Keeps it until user acts
                 } as any).catch(err => {
-                    console.warn('SW notification failed, falling back to native...', err);
                     new Notification(title, { body, icon: '/icon.png' });
                 });
             });
         } else if (Notification.permission === 'granted') {
-            // Native fallback
             new Notification(title, { body, icon: '/icon.png' });
         }
     }, []);

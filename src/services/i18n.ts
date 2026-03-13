@@ -35,6 +35,7 @@ const translations: Record<Language, TranslationKeys> = {
         priority_medium: 'Medium',
         priority_low: 'Low',
         delete_task_confirm: 'Are you sure you want to delete this task?',
+        delete_confirm: 'Are you sure?',
 
         // Subjects
         subjects_title: 'Subjects',
@@ -211,6 +212,7 @@ const translations: Record<Language, TranslationKeys> = {
         priority_medium: 'متوسطة',
         priority_low: 'منخفضة',
         delete_task_confirm: 'هل تريد حذف هذه المهمة؟',
+        delete_confirm: 'هل أنت متأكد من الحذف؟',
 
         subjects_title: 'المواد الدراسية',
         add_subject: 'إضافة مادة',
@@ -373,6 +375,7 @@ const translations: Record<Language, TranslationKeys> = {
         priority_medium: 'Средний',
         priority_low: 'Низкий',
         delete_task_confirm: 'Удалить задачу?',
+        delete_confirm: 'Вы уверены?',
 
         subjects_title: 'Предметы',
         add_subject: 'Добавить',

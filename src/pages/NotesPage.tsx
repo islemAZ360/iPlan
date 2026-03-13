@@ -47,11 +47,23 @@ const NotesPage = () => {
 
     const handleSave = () => {
         if (!title) return;
+        
+        // Auto-add pending reminder if user forgot to click "+" 
+        let finalReminders = [...reminders];
+        if (newReminderTime) {
+            const newRem: Reminder = {
+                id: ("auto-" + Date.now()).toString(),
+                time: new Date(newReminderTime).toISOString()
+            };
+            finalReminders.push(newRem);
+            setNewReminderTime('');
+        }
+
         const now = new Date().toISOString();
         if (editing) {
-            updateNote({ ...editing, title, content, color, subjectId: subjectId || undefined, updatedAt: now, reminders });
+            updateNote({ ...editing, title, content, color, subjectId: subjectId || undefined, updatedAt: now, reminders: finalReminders });
         } else {
-            addNote({ id: Date.now().toString(), title, content, color, subjectId: subjectId || undefined, createdAt: now, updatedAt: now, reminders });
+            addNote({ id: Date.now().toString(), title, content, color, subjectId: subjectId || undefined, createdAt: now, updatedAt: now, reminders: finalReminders });
         }
         setIsCreating(false);
     };
@@ -152,10 +164,11 @@ const NotesPage = () => {
                                             {editing.pinned ? <PinOff className="w-4 h-4" /> : <Pin className="w-4 h-4" />}
                                         </button>
                                         <button
-                                            onClick={() => { deleteNote(editing.id); setIsCreating(false); }}
+                                            onClick={() => { if (window.confirm(translate('delete_confirm'))) { deleteNote(editing.id); setIsCreating(false); } }}
                                             className="p-2 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg text-red-500 transition-colors"
+                                            title={translate('delete')}
                                         >
-                                            <X className="w-4 h-4" />
+                                            <Trash2 className="w-4 h-4" />
                                         </button>
                                     </>
                                 )}
