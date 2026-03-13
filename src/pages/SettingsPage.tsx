@@ -293,34 +293,34 @@ const SettingsPage = () => {
                                 {language === 'ar' ? 'خطوات التفعيل' : language === 'ru' ? 'Шаги активации' : 'Activation Steps'}
                             </span>
                             <a 
-                                href="https://t.me/iplan_robot" 
+                                href="https://t.me/iPlan_Reminders_Bot" 
                                 target="_blank" 
                                 rel="noopener noreferrer"
                                 className="text-[10px] bg-primary-500 hover:bg-primary-600 text-white px-3 py-1 rounded-full font-bold transition-all flex items-center gap-1"
                             >
                                 <Send className="w-3 h-3" />
-                                @iplan_robot
+                                @iPlan_Reminders_Bot
                             </a>
                         </div>
                         
                         <div className="space-y-2">
                             {language === 'ar' ? (
                                 <ol className="text-[11px] text-gray-400 space-y-1 ml-4 list-decimal">
-                                    <li>اضغط على زر <span className="text-white">@iplan_robot</span> بالأعلى</li>
+                                    <li>اضغط على زر <span className="text-white">@iPlan_Reminders_Bot</span> بالأعلى</li>
                                     <li>بعد فتح تلجرام، اضغط على زر <span className="text-white">Start</span></li>
                                     <li>سيقوم البوت بإرسال رقم المعرف (ID) الخاص بك</li>
                                     <li>قم بنسخ الرقم وضعه في الخانة بالأعلى</li>
                                 </ol>
                             ) : language === 'ru' ? (
                                 <ol className="text-[11px] text-gray-400 space-y-1 ml-4 list-decimal">
-                                    <li>Нажмите кнопку <span className="text-white">@iplan_robot</span> выше</li>
+                                    <li>Нажмите кнопку <span className="text-white">@iPlan_Reminders_Bot</span> выше</li>
                                     <li>В Telegram нажмите кнопку <span className="text-white">Start</span></li>
                                     <li>Бот пришлет вам ваш идентификатор (ID)</li>
                                     <li>Скопируйте этот номер в поле выше</li>
                                 </ol>
                             ) : (
                                 <ol className="text-[11px] text-gray-400 space-y-1 ml-4 list-decimal">
-                                    <li>Click the <span className="text-white">@iplan_robot</span> button above</li>
+                                    <li>Click the <span className="text-white">@iPlan_Reminders_Bot</span> button above</li>
                                     <li>In Telegram, press the <span className="text-white">Start</span> button</li>
                                     <li>The bot will send you your unique ID</li>
                                     <li>Copy and paste that ID into the field above</li>
