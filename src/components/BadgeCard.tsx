@@ -1,4 +1,4 @@
-import { BADGE_DEFINITIONS } from '../context/AppContext';
+import { BADGE_DEFINITIONS } from '../lib/constants';
 import { BadgeId } from '../types';
 
 interface BadgeCardProps {

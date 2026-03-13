@@ -6,33 +6,7 @@ import { signOut, User as FirebaseUser } from 'firebase/auth';
 import { auth, db } from '../firebase';
 import { doc, onSnapshot, setDoc } from 'firebase/firestore';
 
-// --- Badge Definitions ---
-export const BADGE_DEFINITIONS: Record<BadgeId, { icon: string; title: string; titleAr: string; desc: string }> = {
-    first_task: { icon: '🎯', title: 'First Step', titleAr: 'الخطوة الأولى', desc: 'Complete your first task' },
-    ten_tasks: { icon: '⭐', title: 'Getting Started', titleAr: 'بداية قوية', desc: 'Complete 10 tasks' },
-    fifty_tasks: { icon: '💫', title: 'Task Master', titleAr: 'سيد المهام', desc: 'Complete 50 tasks' },
-    hundred_tasks: { icon: '🏆', title: 'Centurion', titleAr: 'المئوي', desc: 'Complete 100 tasks' },
-    streak_3: { icon: '🔥', title: 'On Fire', titleAr: 'مشتعل', desc: '3-day streak' },
-    streak_7: { icon: '💪', title: 'Unstoppable', titleAr: 'لا يوقفه شيء', desc: '7-day streak' },
-    streak_30: { icon: '👑', title: 'Legend', titleAr: 'أسطورة', desc: '30-day streak' },
-    first_pomodoro: { icon: '🍅', title: 'Focused', titleAr: 'مركّز', desc: 'First pomodoro session' },
-    ten_pomodoros: { icon: '🧠', title: 'Deep Focus', titleAr: 'تركيز عميق', desc: '10 pomodoro sessions' },
-    all_today: { icon: '✨', title: 'Perfect Day', titleAr: 'يوم مثالي', desc: 'Complete all tasks for a day' },
-    note_taker: { icon: '📝', title: 'Note Taker', titleAr: 'مدوّن', desc: 'Create 5 notes' },
-    habit_starter: { icon: '🌱', title: 'Habit Builder', titleAr: 'بانّي عادات', desc: 'Create 3 habits' },
-    night_owl: { icon: '🦉', title: 'Night Owl', titleAr: 'بومة الليل', desc: 'Complete task after midnight' },
-    early_bird: { icon: '🐦', title: 'Early Bird', titleAr: 'الطائر المبكر', desc: 'Complete task before 7 AM' },
-};
-
-// --- XP Constants ---
-const XP_VALUES = {
-    completeTask: 15,
-    completeHighPriority: 25,
-    completePomodoroSession: 20,
-    createNote: 5,
-    checkHabit: 10,
-    streakBonus: 5, // per day
-};
+import { BADGE_DEFINITIONS, XP_VALUES } from '../lib/constants';
 
 export const getLevel = (xp: number) => {
     const level = Math.floor(xp / 100) + 1;
@@ -351,6 +325,15 @@ export const AppProvider = ({ children, initialUser }: { children: ReactNode; in
     }, []);
 
     const sendNotification = useCallback((title: string, body: string, data?: any) => {
+        // 0. Play Chime (Sound)
+        try {
+            const chime = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+            chime.volume = 0.5;
+            chime.play().catch(() => console.log('Notification sound blocked by browser policy. Interaction needed.'));
+        } catch (e) {
+            console.error('Audio playback error:', e);
+        }
+
         console.log('Pushing notification:', { title, body });
         
         // 1. Toast (Visual Fallback)
@@ -359,24 +342,26 @@ export const AppProvider = ({ children, initialUser }: { children: ReactNode; in
 
         if (!('Notification' in window)) return;
 
+        const icon = '/icon.png';
+
         // 2. Service Worker (Native Feel)
         if (Notification.permission === 'granted' && 'serviceWorker' in navigator) {
             navigator.serviceWorker.ready.then(registration => {
                 registration.showNotification(title, {
                     body,
-                    icon: '/icon.png',
-                    badge: '/icon.png',
+                    icon,
+                    badge: icon,
                     tag: 'iplan-reminder',
                     renotify: true,
                     data: { url: window.location.origin + '/dashboard', ...data }, // Deep linking
-                    vibrate: [100, 50, 100],
+                    vibrate: [200, 100, 200, 100, 200],
                     requireInteraction: true // Keeps it until user acts
                 } as any).catch(err => {
-                    new Notification(title, { body, icon: '/icon.png' });
+                    new Notification(title, { body, icon });
                 });
             });
         } else if (Notification.permission === 'granted') {
-            new Notification(title, { body, icon: '/icon.png' });
+            new Notification(title, { body, icon });
         }
     }, []);
 

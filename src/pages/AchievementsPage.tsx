@@ -1,5 +1,6 @@
 import { BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, Cell, PieChart as RePieChart, Pie } from 'recharts';
-import { useApp, calculateStreak, BADGE_DEFINITIONS } from '../context/AppContext';
+import { useApp, calculateStreak } from '../context/AppContext';
+import { BADGE_DEFINITIONS } from '../lib/constants';
 import { Flame, Trophy, Target } from 'lucide-react';
 import BadgeCard from '../components/BadgeCard';
 import XPBar from '../components/XPBar';
