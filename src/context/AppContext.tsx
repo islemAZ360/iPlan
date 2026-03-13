@@ -421,27 +421,27 @@ export const AppProvider = ({ children, initialUser }: { children: ReactNode; in
 
     // --- CLOUD SCHEDULING LOGIC ---
     const scheduleOneSignalPush = async (time: string, title: string): Promise<string | undefined> => {
-        if (!ONESIGNAL_APP_ID || !ONESIGNAL_REST_KEY || !playerId) return;
+        if (!ONESIGNAL_APP_ID || !ONESIGNAL_REST_KEY || !playerId) {
+            console.log("Scheduling skipped: Missing ID, Key or PlayerID", { ONESIGNAL_APP_ID, hasKey: !!ONESIGNAL_REST_KEY, playerId });
+            return;
+        }
 
         try {
-            const response = await fetch('https://onesignal.com/api/v1/notifications', {
+            const response = await fetch('/api/schedule', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json; charset=utf-8',
-                    'Authorization': `Basic ${ONESIGNAL_REST_KEY}`
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    app_id: ONESIGNAL_APP_ID,
-                    contents: { en: title, ar: title },
-                    include_subscription_ids: [playerId],
-                    send_after: new Date(time).toUTCString(),
-                    data: { url: '/#/notes' }
+                    appId: ONESIGNAL_APP_ID,
+                    restKey: ONESIGNAL_REST_KEY,
+                    playerId,
+                    time,
+                    title
                 })
             });
             const data = await response.json();
             return data.id;
         } catch (error) {
-            console.error("OneSignal Scheduling Error:", error);
+            console.error("OneSignal Proxy Scheduling Error:", error);
             return undefined;
         }
     };
@@ -449,14 +449,18 @@ export const AppProvider = ({ children, initialUser }: { children: ReactNode; in
     const cancelOneSignalPush = async (notificationId: string) => {
         if (!ONESIGNAL_APP_ID || !ONESIGNAL_REST_KEY || !notificationId) return;
         try {
-            await fetch(`https://onesignal.com/api/v1/notifications/${notificationId}?app_id=${ONESIGNAL_APP_ID}`, {
-                method: 'DELETE',
-                headers: {
-                    'Authorization': `Basic ${ONESIGNAL_REST_KEY}`
-                }
+            await fetch('/api/schedule', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    appId: ONESIGNAL_APP_ID,
+                    restKey: ONESIGNAL_REST_KEY,
+                    action: 'cancel',
+                    notificationId
+                })
             });
         } catch (error) {
-            console.error("OneSignal Cancellation Error:", error);
+            console.error("OneSignal Proxy Cancellation Error:", error);
         }
     };
 
