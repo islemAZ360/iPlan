@@ -264,51 +264,6 @@ const SettingsPage = () => {
                         ))}
                     </div>
                 </div>
-
-                {/* OneSignal App ID */}
-                <div className="py-6 border-b border-white/5 space-y-3">
-                    <div className="flex items-center gap-4">
-                        <div className="p-2.5 rounded-xl bg-primary-500/20 text-primary-400">
-                            <Zap className="w-5 h-5" />
-                        </div>
-                        <div className="flex-1">
-                            <span className="text-gray-200 font-medium block">{translate('onesignal_id')}</span>
-                            <span className="text-[10px] text-gray-500">{translate('onesignal_desc')}</span>
-                        </div>
-                    </div>
-                    <div className="relative group/input">
-                        <input
-                            type="text"
-                            value={user.oneSignalAppId || ''}
-                            onChange={(e) => updateUser({ oneSignalAppId: e.target.value })}
-                            placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-                            className="w-full px-4 py-2.5 rounded-xl border border-white/10 bg-white/5 text-white text-xs font-mono focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 outline-none transition-all duration-200"
-                        />
-                    </div>
-                </div>
-
-                {/* OneSignal REST Key */}
-                <div className="py-6 border-b border-white/5 space-y-3">
-                    <div className="flex items-center gap-4">
-                        <div className="p-2.5 rounded-xl bg-red-500/20 text-red-400">
-                            <Zap className="w-5 h-5" />
-                        </div>
-                        <div className="flex-1">
-                            <span className="text-gray-200 font-medium block">{translate('onesignal_rest_key')}</span>
-                            <span className="text-[10px] text-red-500 font-bold">{translate('onesignal_rest_desc')}</span>
-                        </div>
-                    </div>
-                    <div className="relative group/input">
-                        <input
-                            type="password"
-                            value={user.oneSignalRestKey || ''}
-                            onChange={(e) => updateUser({ oneSignalRestKey: e.target.value })}
-                            placeholder="os_v2_app_xxxxxxxxxxxxxxxxxxxxxxxxxx"
-                            className="w-full px-4 py-2.5 rounded-xl border border-white/10 bg-white/5 text-white text-xs font-mono focus:ring-2 focus:ring-red-500/50 focus:border-red-500 outline-none transition-all duration-200"
-                        />
-                    </div>
-                </div>
-
                 {/* Notification Test */}
                 <div className="pt-6">
                     <div className="flex items-center justify-between">

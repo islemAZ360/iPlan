@@ -186,7 +186,7 @@ export const AppProvider = ({ children, initialUser }: { children: ReactNode; in
     }, [initialUser]);
 
     // --- BACKGROUND NOTIFICATIONS CONFIGURATION ---
-    const ONESIGNAL_APP_ID = state.user.oneSignalAppId || "placeholder";
+    const ONESIGNAL_APP_ID = "beb3002b-8f12-4951-ae51-719fe24ff9b5";
     const ONESIGNAL_REST_KEY = state.user.oneSignalRestKey || "";
     const [playerId, setPlayerId] = useState<string | null>(localStorage.getItem('onesignal_player_id'));
 
@@ -421,8 +421,8 @@ export const AppProvider = ({ children, initialUser }: { children: ReactNode; in
 
     // --- CLOUD SCHEDULING LOGIC ---
     const scheduleOneSignalPush = async (time: string, title: string): Promise<string | undefined> => {
-        if (!ONESIGNAL_APP_ID || !ONESIGNAL_REST_KEY || !playerId) {
-            console.log("Scheduling skipped: Missing ID, Key or PlayerID", { ONESIGNAL_APP_ID, hasKey: !!ONESIGNAL_REST_KEY, playerId });
+        if (!playerId) {
+            console.log("Scheduling skipped: Missing PlayerID");
             return;
         }
 
@@ -431,8 +431,6 @@ export const AppProvider = ({ children, initialUser }: { children: ReactNode; in
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    appId: ONESIGNAL_APP_ID,
-                    restKey: ONESIGNAL_REST_KEY,
                     playerId,
                     time,
                     title
@@ -447,14 +445,12 @@ export const AppProvider = ({ children, initialUser }: { children: ReactNode; in
     };
 
     const cancelOneSignalPush = async (notificationId: string) => {
-        if (!ONESIGNAL_APP_ID || !ONESIGNAL_REST_KEY || !notificationId) return;
+        if (!notificationId) return;
         try {
             await fetch('/api/schedule', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    appId: ONESIGNAL_APP_ID,
-                    restKey: ONESIGNAL_REST_KEY,
                     action: 'cancel',
                     notificationId
                 })
