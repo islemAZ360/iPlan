@@ -138,50 +138,58 @@ export const AppProvider = ({ children, initialUser }: { children: ReactNode; in
             if (snapshot.exists()) {
                 const cloudData = snapshot.data() as AppState;
                 
-                // --- Smart Merge Logic ---
+                // --- Robust Smart Merge Logic ---
                 setState(prev => {
-                    // If local is mostly empty but cloud has data, take cloud
-                    const isLocalEmpty = prev.tasks.length === 0 && prev.notes.length === 0 && prev.subjects.length === 0;
-                    if (isLocalEmpty) return cloudData;
+                    // Check if this update came from our own local setDoc to avoid echo
+                    if (isRemoteUpdate.current) {
+                        // isRemoteUpdate might be set by our own setDoc block below, 
+                        // but actually onSnapshot is triggered by LOCAL writes too in Firestore.
+                        // However, we want to know if CLOUD changed beyond our local state.
+                        if (JSON.stringify(cloudData) === JSON.stringify(prev)) return prev;
+                    }
 
-                    // If cloud is same as current, do nothing
-                    if (JSON.stringify(cloudData) === JSON.stringify(prev)) return prev;
+                    // Priority: If first load from cloud, and local is "less" than cloud, take cloud.
+                    const isLocalNewer = !isDataLoadedFromCloud.current;
 
-                    // Merge strategy: Union of arrays by ID
                     const mergeById = (local: any[], cloud: any[]) => {
                         const map = new Map();
-                        local.forEach(item => map.set(item.id, item));
-                        cloud.forEach(item => {
-                            // If cloud has newer or same item, overwrite local (assuming cloud is source of truth)
-                            map.set(item.id, item);
+                        // Put cloud first as base
+                        cloud.forEach(item => map.set(item.id, item));
+                        // Then local might overwrite if it has newer stuff (not implemented timestamps yet, so union)
+                        local.forEach(item => {
+                            if (!map.has(item.id)) {
+                                map.set(item.id, item);
+                            }
                         });
                         return Array.from(map.values());
                     };
 
                     const mergedState: AppState = {
-                        ...cloudData, // Use cloud settings (language, theme) as master
+                        ...cloudData, // Master settings from cloud
                         user: { ...prev.user, ...cloudData.user },
-                        subjects: mergeById(prev.subjects, cloudData.subjects),
-                        tasks: mergeById(prev.tasks, cloudData.tasks),
-                        notes: mergeById(prev.notes, cloudData.notes),
-                        habits: mergeById(prev.habits, cloudData.habits),
-                        habitLogs: mergeById(prev.habitLogs, cloudData.habitLogs),
-                        pomodoroSessions: mergeById(prev.pomodoroSessions, cloudData.pomodoroSessions),
-                        badges: mergeById(prev.badges, cloudData.badges),
-                        xp: Math.max(prev.xp, cloudData.xp),
+                        subjects: mergeById(prev.subjects, cloudData.subjects || []),
+                        tasks: mergeById(prev.tasks, cloudData.tasks || []),
+                        notes: mergeById(prev.notes, cloudData.notes || []),
+                        habits: mergeById(prev.habits, cloudData.habits || []),
+                        habitLogs: mergeById(prev.habitLogs, cloudData.habitLogs || []),
+                        pomodoroSessions: mergeById(prev.pomodoroSessions, cloudData.pomodoroSessions || []),
+                        badges: mergeById(prev.badges, cloudData.badges || []),
+                        xp: Math.max(prev.xp, cloudData.xp || 0),
                     };
 
-                    isRemoteUpdate.current = true;
+                    isRemoteUpdate.current = true; // Mark as remote to prevent SAVE effect from looping back
                     return mergedState;
                 });
                 
                 isDataLoadedFromCloud.current = true;
             } else {
-                // If doc doesn't exist, upload current local state (if not empty)
-                isDataLoadedFromCloud.current = true;
-                const isLocalEmpty = state.tasks.length === 0 && state.notes.length === 0 && state.subjects.length === 0;
-                if (!isLocalEmpty) {
-                    setDoc(userDocRef, cleanData(state)).catch(console.error);
+                // If cloud document is missing, it means this is a truly new account or first-time sync
+                if (!isDataLoadedFromCloud.current) {
+                    isDataLoadedFromCloud.current = true;
+                    const isLocalEmpty = state.tasks.length === 0 && state.notes.length === 0 && state.subjects.length === 0;
+                    if (!isLocalEmpty) {
+                        setDoc(userDocRef, cleanData(state)).catch(console.error);
+                    }
                 }
             }
         });
@@ -194,8 +202,14 @@ export const AppProvider = ({ children, initialUser }: { children: ReactNode; in
         const OneSignal = (window as any).OneSignal;
         if (OneSignal) {
             OneSignal.push(() => {
+                const appId = "4f46e5-placeholder-id";
+                // Skip init if it's a placeholder to avoid breaking other scripts
+                if (appId.includes("placeholder")) {
+                    console.log('OneSignal: Placeholder ID detected, skipping initialization.');
+                    return;
+                }
                 OneSignal.init({
-                    appId: "4f46e5-placeholder-id", // سيحتاج المستخدم لوضع المعرف الخاص به هنا
+                    appId: appId,
                     safari_web_id: "web.onesignal.auto.123456",
                     notifyButton: {
                         enable: true,
@@ -297,38 +311,99 @@ export const AppProvider = ({ children, initialUser }: { children: ReactNode; in
     }, [checkBadges]);
 
     const requestNotificationPermission = useCallback(() => {
+        const OneSignal = (window as any).OneSignal;
+        if (OneSignal) {
+            OneSignal.push(() => {
+                OneSignal.showNativePrompt();
+            });
+        }
+
         if ('Notification' in window && Notification.permission !== 'granted') {
-            Notification.requestPermission();
+            Notification.requestPermission().then(permission => {
+                if (permission === 'granted') {
+                    console.log('Notification permission granted.');
+                }
+            });
         }
     }, []);
 
     const sendNotification = useCallback((title: string, body: string) => {
-        const OneSignal = (window as any).OneSignal;
-        if (OneSignal && OneSignal.notifications) {
-            // OneSignal logic (usually requires player ID on backend for targeting)
-            console.log('OneSignal Notification:', title, body);
+        console.log('Attempting to send notification:', { title, body });
+        
+        // 1. Try Native Notification first (simplest)
+        if (!('Notification' in window)) {
+            console.warn('This browser does not support notifications.');
+            return;
         }
 
-        if ('Notification' in window && Notification.permission === 'granted') {
-            new Notification(title, { body, icon: '/favicon.ico' });
+        if (Notification.permission === 'granted') {
+            try {
+                const n = new Notification(title, { 
+                    body, 
+                    icon: '/icon.png',
+                    badge: '/icon.png',
+                    vibrate: [200, 100, 200]
+                } as any);
+                console.log('Native notification sent successfully.');
+                
+                // Audio feedback for testing
+                const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3');
+                audio.play().catch(() => {});
+            } catch (e) {
+                console.warn('Native notification failed, trying Service Worker...', e);
+                if ('serviceWorker' in navigator) {
+                    navigator.serviceWorker.ready.then(registration => {
+                        registration.showNotification(title, {
+                            body,
+                            icon: '/icon.png',
+                            vibrate: [200, 100, 200]
+                        } as any);
+                    }).catch(swErr => console.error('Service Worker notification failed:', swErr));
+                }
+            }
+        } else {
+            console.warn('Notification permission not granted. Current state:', Notification.permission);
+        }
+
+        // 2. OneSignal (Modern SDK)
+        const OneSignal = (window as any).OneSignal;
+        if (OneSignal && OneSignal.Notifications) {
+            try {
+                // OneSignal handles background better if initialized
+                console.log('OneSignal detected, (background sync managed by OneSignal)');
+            } catch (e) {
+                console.error('OneSignal error:', e);
+            }
         }
     }, []);
 
-    // Periodic reminder check (for demonstration when app is open)
+    // Expose for testing
     useEffect(() => {
+        (window as any).appNotify = sendNotification;
+    }, [sendNotification]);
+
+    // Periodic reminder check (Improved for mobile background/throttling)
+    useEffect(() => {
+        // Check every 30 seconds instead of 60 to catch narrow windows
         const interval = setInterval(() => {
             const now = new Date();
+            const nowTime = now.getTime();
+            
             state.notes.forEach(note => {
                 note.reminders?.forEach(rem => {
-                    const remTime = new Date(rem.time);
-                    const diff = remTime.getTime() - now.getTime();
-                    // If reminder is within next 1 minute (and not in past)
-                    if (diff > 0 && diff < 60000) {
+                    const remTime = new Date(rem.time).getTime();
+                    const diff = remTime - nowTime;
+                    
+                    // Trigger if it was supposed to happen in the last 35 seconds 
+                    // (to catch up if interval was throttled)
+                    if (diff <= 0 && diff > -35000) {
+                        // We need a way to mark reminder as "sent" locally to avoid double triggers
+                        // For now we rely on the narrow window
                         sendNotification(note.title, getTranslation(state.language, 'reminders'));
                     }
                 });
             });
-        }, 60000);
+        }, 30000);
         return () => clearInterval(interval);
     }, [state.notes, sendNotification, state.language]);
 

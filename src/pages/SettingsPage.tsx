@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { BookOpen, Moon, Sun, LogOut, Camera, Mail, Calendar, User, Upload } from 'lucide-react';
+import { BookOpen, Moon, Sun, LogOut, Camera, Mail, Calendar, User, Upload, Zap } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { Language } from '../types';
@@ -238,7 +238,7 @@ const SettingsPage = () => {
                 </div>
 
                 {/* Language */}
-                <div className="flex items-center justify-between py-4 pt-6">
+                <div className="flex items-center justify-between py-4 pt-6 border-b border-white/5">
                     <div className="flex items-center gap-4">
                         <div className="p-2.5 rounded-xl bg-blue-500/20 text-blue-400">
                             <BookOpen className="w-5 h-5" />
@@ -262,6 +262,36 @@ const SettingsPage = () => {
                                 {lang.label}
                             </button>
                         ))}
+                    </div>
+                </div>
+
+                {/* Notification Test */}
+                <div className="pt-6">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                            <div className="p-2.5 rounded-xl bg-yellow-500/20 text-yellow-500">
+                                <Zap className="w-5 h-5" />
+                            </div>
+                            <div>
+                                <span className="text-gray-200 font-medium block">إشعار تجريبي (Test)</span>
+                                <span className="text-[10px] text-gray-500">اختبر وصول التنبيهات لهاتفك الآن</span>
+                            </div>
+                        </div>
+                        <button
+                            onClick={() => {
+                                // @ts-ignore
+                                if (window.appNotify) {
+                                    // @ts-ignore
+                                    window.appNotify("اختبار التنبيهات", "هذا إشعار تجريبي من iPlan! إذا وصلك هذا، فهذا يعني أن النظام يعمل.");
+                                } else {
+                                    alert("برجاء الانتظار حتى اكتمال تحميل النظام...");
+                                }
+                            }}
+                            id="test-notify-btn"
+                            className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-bold text-white transition-all active:scale-95 shadow-lg shadow-yellow-500/5"
+                        >
+                            إرسال اختبار
+                        </button>
                     </div>
                 </div>
             </div>
