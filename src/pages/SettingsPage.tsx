@@ -297,19 +297,19 @@ const SettingsPage = () => {
                             </div>
                         </div>
                         <button
-                            onClick={() => {
-                                // @ts-ignore
-                                if (window.appNotify) {
-                                    // @ts-ignore
-                                    window.appNotify("اختبار التنبيهات", "هذا إشعار تجريبي من iPlan! إذا وصلك هذا، فهذا يعني أن النظام يعمل.");
+                            onClick={async () => {
+                                if (user.telegramChatId) {
+                                    const res = await testTelegram("iPlan Test", "هذا إشعار تجريبي للتأكد من ربط تلجرام بنجاح!");
+                                    if (res) alert("تم إرسال إشعار تجريبي لتلجرام!");
+                                    else alert("فشل إرسال الإشعار. تأكد من إعدادات البوت والـ Id");
                                 } else {
-                                    alert("برجاء الانتظار حتى اكتمال تحميل النظام...");
+                                    sendNotification("اختبار المتصفح", "هذا إشعار تجريبي من المتصفح. قم بإدخال Telegram ID لتجريب تنبيهات الهاتف.");
                                 }
                             }}
                             id="test-notify-btn"
-                            className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-bold text-white transition-all active:scale-95 shadow-lg shadow-yellow-500/5"
+                            className="px-4 py-2 rounded-xl bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-500 text-xs font-medium border border-yellow-500/20 transition-all duration-200"
                         >
-                            إرسال اختبار
+                            {translate('test')}
                         </button>
                     </div>
                 </div>

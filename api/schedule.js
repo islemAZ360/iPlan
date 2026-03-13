@@ -9,8 +9,14 @@ export default async function handler(req, res) {
 
     const { playerId, time, title, action, chatId } = req.body;
 
+    console.log("Incoming Telegram Request:", { chatId, title, action });
+
     if (!TELEGRAM_BOT_TOKEN) {
-        return res.status(400).json({ error: 'Telegram Bot Token missing' });
+        return res.status(500).json({ error: 'Backend Token missing' });
+    }
+
+    if (!chatId) {
+        return res.status(400).json({ error: 'Chat ID is required' });
     }
 
     try {
@@ -20,8 +26,13 @@ export default async function handler(req, res) {
         // NOTE: Since Vercel functions are short-lived, for future scheduling we'd usually need a CRON.
         // BUT, for instant testing and "active" sessions, this confirms the bridge works.
 
-        const message = `🔔 *iPlan Reminder*\n\n*Title:* ${title}\n*Time:* ${new Date(time).toLocaleString()}`;
+        const reminderTitle = title || "تنبيه من iPlan";
+        const reminderTime = time ? new Date(time).toLocaleString('ar-EG') : "الآن";
+
+        const message = `🔔 *تنبيه iPlan*\n\n📌 *الموضوع:* ${reminderTitle}\n⏰ *الوقت:* ${reminderTime}`;
         
+        console.log("Sending to Telegram:", { chatId, message });
+
         const response = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },

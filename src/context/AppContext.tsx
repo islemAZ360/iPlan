@@ -44,6 +44,7 @@ export interface AppContextType extends AppState {
     logout: () => void;
     requestNotificationPermission: () => void;
     sendNotification: (title: string, body: string) => void;
+    testTelegram: (title: string, body: string) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -449,19 +450,13 @@ export const AppProvider = ({ children, initialUser }: { children: ReactNode; in
             });
         },
         updateNote: async (n) => {
-            // Manage Cloud Schedule
-            const oldNote = state.notes.find(on => on.id === n.id);
             const updatedReminders = [...(n.reminders || [])];
-
-            // Simple logic: If it's a new reminder or time changed, we'd reschedule
-            // For now, we mainly ensure manual "save" triggers the bridge.
             for (let i = 0; i < updatedReminders.length; i++) {
                 if (!updatedReminders[i].notificationId) {
                     const nid = await scheduleTelegramNotification(updatedReminders[i].time, n.title);
                     if (nid) updatedReminders[i].notificationId = nid;
                 }
             }
-
             setState(prev => ({ ...prev, notes: prev.notes.map(note => note.id === n.id ? { ...n, reminders: updatedReminders } : note) }));
         },
         deleteNote: async (id) => {
@@ -473,6 +468,7 @@ export const AppProvider = ({ children, initialUser }: { children: ReactNode; in
             }
             setState(prev => ({ ...prev, notes: prev.notes.filter(n => n.id !== id) }));
         },
+        testTelegram: (title: string, body: string) => scheduleTelegramNotification(new Date().toISOString(), title),
 
         addHabit: (h) => setState(prev => {
             const newState = { ...prev, habits: [...prev.habits, h] };
