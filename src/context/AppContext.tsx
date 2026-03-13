@@ -44,7 +44,7 @@ export interface AppContextType extends AppState {
     logout: () => void;
     requestNotificationPermission: () => void;
     sendNotification: (title: string, body: string) => void;
-    testTelegram: (title: string, body: string) => void;
+    testTelegram: (title: string, body: string) => Promise<boolean>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -468,7 +468,9 @@ export const AppProvider = ({ children, initialUser }: { children: ReactNode; in
             }
             setState(prev => ({ ...prev, notes: prev.notes.filter(n => n.id !== id) }));
         },
-        testTelegram: (title: string, body: string) => scheduleTelegramNotification(new Date().toISOString(), title),
+        testTelegram: async (title: string, body: string) => {
+            return await scheduleTelegramNotification(new Date().toISOString(), title);
+        },
 
         addHabit: (h) => setState(prev => {
             const newState = { ...prev, habits: [...prev.habits, h] };

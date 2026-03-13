@@ -7,9 +7,45 @@ export default async function handler(req, res) {
         return res.status(405).json({ error: 'Method not allowed' });
     }
 
-    const { playerId, time, title, action, chatId } = req.body;
+    const body = req.body;
 
-    console.log("Incoming Telegram Request:", { chatId, title, action });
+    // --- CASE 1: Incoming from Telegram (Webhook) ---
+    if (body.message) {
+        const chatId = body.message.chat.id;
+        const text = body.message.text || "";
+
+        console.log("Telegram Webhook received:", { chatId, text });
+
+        if (text.startsWith('/start')) {
+            const reply = `مرحباً بك في iPlan! 🚀\n\nمعرفك هو: \`${chatId}\`\n\nقم بنسخه ووضعه في إعدادات الموقع لتفعيل التنبيهات.`;
+            await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    chat_id: chatId,
+                    text: reply,
+                    parse_mode: 'Markdown'
+                })
+            });
+        } else {
+            const reply = `معرفك الخاص هو: \`${chatId}\`\nاستخدمه في إعدادات iPlan.`;
+            await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    chat_id: chatId,
+                    text: reply,
+                    parse_mode: 'Markdown'
+                })
+            });
+        }
+        return res.status(200).json({ ok: true });
+    }
+
+    // --- CASE 2: Incoming from Frontend (Notification Bridge) ---
+    const { time, title, chatId } = body;
+
+    console.log("Incoming Frontend Request:", { chatId, title });
 
     if (!TELEGRAM_BOT_TOKEN) {
         return res.status(500).json({ error: 'Backend Token missing' });
@@ -20,12 +56,6 @@ export default async function handler(req, res) {
     }
 
     try {
-        // We use a simple strategy: Telegram doesn't have a 'native' scheduler like OneSignal
-        // For a true 100% free background solution on Vercel (Serverless), 
-        // we will use the fetch to Telegram API.
-        // NOTE: Since Vercel functions are short-lived, for future scheduling we'd usually need a CRON.
-        // BUT, for instant testing and "active" sessions, this confirms the bridge works.
-
         const reminderTitle = title || "تنبيه من iPlan";
         const reminderTime = time ? new Date(time).toLocaleString('ar-EG') : "الآن";
 
