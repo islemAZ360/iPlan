@@ -68,7 +68,7 @@ export default async function handler(req, res) {
             headerLabel = type === 'confirmation' ? "Напоминание запланировано ✅" : "Пришло время! 🔔";
         }
 
-        const formattedTime = time ? new Date(time).toLocaleString(lang === 'ar' ? 'ar-EG' : (lang === 'ru' ? 'ru-RU' : 'en-US')) : (lang === 'ar' ? "الآن" : (lang === 'ru' ? "Сейчас" : "Now"));
+        const formattedTime = time || (lang === 'ar' ? "الآن" : (lang === 'ru' ? "Сейчас" : "Now"));
 
         const message = `*${headerLabel}*\n\n📌 *${subjectLabel}:* ${reminderTitle}\n⏰ *${timeLabel}:* ${formattedTime}`;
         

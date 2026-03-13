@@ -115,46 +115,31 @@ export const AppProvider = ({ children, initialUser }: { children: ReactNode; in
                 
                 // --- Robust Smart Merge Logic ---
                 setState(prev => {
-                    // Check if this update came from our own local setDoc to avoid echo
-                    if (isRemoteUpdate.current) {
-                        // isRemoteUpdate might be set by our own setDoc block below, 
-                        // but actually onSnapshot is triggered by LOCAL writes too in Firestore.
-                        // However, we want to know if CLOUD changed beyond our local state.
-                        if (JSON.stringify(cloudData) === JSON.stringify(prev)) return prev;
-                    }
+                    // Update flags
+                    isRemoteUpdate.current = true;
+                    isDataLoadedFromCloud.current = true;
 
-                    // Priority: If first load from cloud, and local is "less" than cloud, take cloud.
-                    const isLocalNewer = !isDataLoadedFromCloud.current;
+                    if (JSON.stringify(cloudData) === JSON.stringify(prev)) return prev;
 
                     const mergeById = (local: any[], cloud: any[]) => {
                         const map = new Map();
-                        
-                        // Seed map with local stuff first
                         local.forEach(item => map.set(item.id, item));
 
-                        // Compare with cloud stuff
                         cloud.forEach(cloudItem => {
                             const localItem = map.get(cloudItem.id);
                             if (!localItem) {
-                                // New item from cloud
                                 map.set(cloudItem.id, cloudItem);
                             } else {
-                                // Existing item: Compare timestamps
-                                const cloudTime = cloudItem.updatedAt || cloudItem.createdAt || cloudItem.completedAt || "";
-                                const localTime = localItem.updatedAt || localItem.createdAt || localItem.completedAt || "";
-                                
-                                // Cloud wins ONLY if it is strictly newer
-                                if (cloudTime > localTime) {
-                                    map.set(cloudItem.id, cloudItem);
-                                }
-                                // If equal or cloud is older, local wins (keep localItem in map)
+                                const cloudTime = new Date(cloudItem.updatedAt || cloudItem.createdAt || 0).getTime();
+                                const localTime = new Date(localItem.updatedAt || localItem.createdAt || 0).getTime();
+                                if (cloudTime > localTime) map.set(cloudItem.id, cloudItem);
                             }
                         });
                         return Array.from(map.values());
                     };
 
-                    const mergedState: AppState = {
-                        ...cloudData, // Master settings from cloud
+                    return {
+                        ...cloudData,
                         user: { ...prev.user, ...cloudData.user },
                         subjects: mergeById(prev.subjects, cloudData.subjects || []),
                         tasks: mergeById(prev.tasks, cloudData.tasks || []),
@@ -165,9 +150,6 @@ export const AppProvider = ({ children, initialUser }: { children: ReactNode; in
                         badges: mergeById(prev.badges, cloudData.badges || []),
                         xp: Math.max(prev.xp, cloudData.xp || 0),
                     };
-
-                    isRemoteUpdate.current = true; // Mark as remote to prevent SAVE effect from looping back
-                    return mergedState;
                 });
                 
                 isDataLoadedFromCloud.current = true;
@@ -385,13 +367,15 @@ export const AppProvider = ({ children, initialUser }: { children: ReactNode; in
             return;
         }
 
+        const formattedLocalTime = new Date(time).toLocaleString(state.language === 'ar' ? 'ar-EG' : (state.language === 'ru' ? 'ru-RU' : 'en-US'));
+
         try {
             const response = await fetch('/api/schedule', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     chatId: state.user.telegramChatId,
-                    time,
+                    time: formattedLocalTime,
                     title,
                     lang: state.language,
                     type
@@ -416,26 +400,38 @@ export const AppProvider = ({ children, initialUser }: { children: ReactNode; in
         setLanguage: (lang) => setState(prev => ({ ...prev, language: lang })),
         setTheme: (theme) => setState(prev => ({ ...prev, theme })),
 
-        addSubject: (s) => setState(prev => ({ ...prev, subjects: [...prev.subjects, s] })),
-        updateSubject: (s) => setState(prev => ({ ...prev, subjects: prev.subjects.map(sub => sub.id === s.id ? s : sub) })),
+        addSubject: (s) => setState(prev => ({ ...prev, subjects: [...prev.subjects, { ...s, updatedAt: new Date().toISOString() }] })),
+        updateSubject: (s) => setState(prev => ({ ...prev, subjects: prev.subjects.map(sub => sub.id === s.id ? { ...s, updatedAt: new Date().toISOString() } : sub) })),
         deleteSubject: (id) => setState(prev => ({ ...prev, subjects: prev.subjects.filter(s => s.id !== id), tasks: prev.tasks.filter(t => t.subjectId !== id) })),
 
-        addTask: (t) => setState(prev => ({ ...prev, tasks: [...prev.tasks, t] })),
-        updateTask: (t) => setState(prev => {
-            const oldTask = prev.tasks.find(x => x.id === t.id);
-            let xpChange = 0;
-            if (oldTask) {
-                if (oldTask.status !== 'completed' && t.status === 'completed') {
-                    xpChange = t.priority === 'high' ? XP_VALUES.completeHighPriority : XP_VALUES.completeTask;
-                } else if (oldTask.status === 'completed' && t.status !== 'completed') {
-                    xpChange = -(t.priority === 'high' ? XP_VALUES.completeHighPriority : XP_VALUES.completeTask);
+        addTask: (t) => setState(prev => ({ ...prev, tasks: [...prev.tasks, { ...t, updatedAt: new Date().toISOString() }] })),
+        updateTask: (t) => {
+            const xpChange = (oldTask: Task | undefined, newTask: Task) => {
+                let change = 0;
+                if (oldTask) {
+                    if (oldTask.status !== 'completed' && newTask.status === 'completed') {
+                        change = newTask.priority === 'high' ? XP_VALUES.completeHighPriority : XP_VALUES.completeTask;
+                    } else if (oldTask.status === 'completed' && newTask.status !== 'completed') {
+                        change = -(newTask.priority === 'high' ? XP_VALUES.completeHighPriority : XP_VALUES.completeTask);
+                    }
                 }
-            }
-            const newXp = Math.max(0, prev.xp + xpChange);
-            const newState = { ...prev, tasks: prev.tasks.map(task => task.id === t.id ? t : task), xp: newXp };
-            newState.badges = checkBadges(newState);
-            return newState;
-        }),
+                return change;
+            };
+
+            setState(prev => {
+                const oldTask = prev.tasks.find(x => x.id === t.id);
+                const xpDelta = xpChange(oldTask, t);
+                const newXp = Math.max(0, prev.xp + xpDelta);
+                const updatedTask = { ...t, updatedAt: new Date().toISOString() };
+                const newState = { 
+                    ...prev, 
+                    tasks: prev.tasks.map(task => task.id === t.id ? updatedTask : task), 
+                    xp: newXp 
+                };
+                newState.badges = checkBadges(newState);
+                return newState;
+            });
+        },
         deleteTask: (id) => setState(prev => ({ ...prev, tasks: prev.tasks.filter(t => t.id !== id) })),
         updateUser: (u) => setState(prev => ({ ...prev, user: { ...prev.user, ...u } })),
 
@@ -447,7 +443,8 @@ export const AppProvider = ({ children, initialUser }: { children: ReactNode; in
             }
             
             setState(prev => {
-                const newState = { ...prev, notes: [...prev.notes, { ...n, reminders: updatedReminders }], xp: prev.xp + XP_VALUES.createNote };
+                const newNote = { ...n, updatedAt: new Date().toISOString(), reminders: updatedReminders };
+                const newState = { ...prev, notes: [...prev.notes, newNote], xp: prev.xp + XP_VALUES.createNote };
                 newState.badges = checkBadges(newState);
                 return newState;
             });
@@ -477,17 +474,23 @@ export const AppProvider = ({ children, initialUser }: { children: ReactNode; in
         },
 
         addHabit: (h) => setState(prev => {
-            const newState = { ...prev, habits: [...prev.habits, h] };
+            const newState = { ...prev, habits: [...prev.habits, { ...h, updatedAt: new Date().toISOString() }] };
             newState.badges = checkBadges(newState);
             return newState;
         }),
         deleteHabit: (id) => setState(prev => ({ ...prev, habits: prev.habits.filter(h => h.id !== id), habitLogs: prev.habitLogs.filter(l => l.habitId !== id) })),
         toggleHabitLog: (habitId, date) => setState(prev => {
-            const exists = prev.habitLogs.some(l => l.habitId === habitId && l.date === date);
-            const newLogs = exists
-                ? prev.habitLogs.filter(l => !(l.habitId === habitId && l.date === date))
-                : [...prev.habitLogs, { habitId, date }];
-            const xpDelta = exists ? 0 : XP_VALUES.checkHabit;
+            const existing = prev.habitLogs.find(l => l.habitId === habitId && l.date === date);
+            const now = new Date().toISOString();
+            let newLogs;
+            let xpDelta = 0;
+
+            if (existing) {
+                newLogs = prev.habitLogs.filter(l => l !== existing);
+            } else {
+                newLogs = [...prev.habitLogs, { habitId, date, completed: true, updatedAt: now }];
+                xpDelta = XP_VALUES.checkHabit;
+            }
             return { ...prev, habitLogs: newLogs, xp: prev.xp + xpDelta };
         }),
         isHabitDone,
