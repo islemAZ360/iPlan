@@ -21,7 +21,7 @@ export default async function handler(req, res) {
             if (text.startsWith('/start')) {
                 reply = `مرحباً بك في iPlan! 🚀\n\nمعرفك هو: \`${chatId}\`\nقم بنسخه ووضعه في إعدادات الموقع.\n\n` +
                         `Welcome to iPlan! 🚀\nYour ID is: \`${chatId}\`\nCopy and paste it in site settings.\n\n` +
-                        `Добро пожаловать في iPlan! 🚀\nВаш ID: \`${chatId}\`\nСкопируйте и вставьте в настройки сайта.`;
+                        `Добро пожаловать в iPlan! 🚀\nВаш ID: \`${chatId}\`\nСкопируйте и вставьте в настройки сайта.`;
             } else {
                 reply = `معرفك: \`${chatId}\` | Your ID: \`${chatId}\` | Ваш ID: \`${chatId}\``;
             }
